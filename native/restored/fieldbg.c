@@ -9,6 +9,7 @@
 
 static int wrap(int i, int n) { return (i % n + n) % n; }
 
+#define GAME_VIEW VG(GAME_VIEW_D5) // 게임 객체 필드: 판마다 다르다(host/ver.h)
 enum {
     TILE = 14,
     FN_SET_CLIP = 0x103900,     // (gfx, x, y, w, h)
@@ -18,7 +19,7 @@ enum {
 
     LAYER_OWNER = 0x00, LAYER_COLS = 0x10, LAYER_ROWS = 0x14, LAYER_DATA = 0x18,
     OWNER_GAME = 0x00, OWNER_MAP_W = 0x78, OWNER_MAP_H = 0x7c, // 앞 맵의 픽셀 크기
-    GAME_GFX = 0x08, GAME_VIEW = 0x568,                         // 필드 보기 사각형(x, y, w, h)
+    GAME_GFX = 0x08, GAME_VIEW_D5 = 0x568,                         // 필드 보기 사각형(x, y, w, h)
 };
 
 // 0x381a0(레이어, gc, x, y, 오른쪽, 아래, 맵 그리기 정보): x, y는 앞 맵의 첫 타일 위치(1칸 미만 음수일 수 있다).

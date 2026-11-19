@@ -3,7 +3,7 @@
 2006년 KTF 피처폰(WIPI)용 게임 「에픽크로니클 PE」를 요즘 기기에서 돌리는 실행 환경이다. 원본 Thumb 코드를 C로 기계 번역하거나(네이티브) 인터프리터로 직접 실행하고(웹), WIPI API를 SDL3 위에 다시 구현했다. 넓은 가로 화면에 맞춰 메뉴를 RmlUi로 다시 그렸고, 터치·게임패드와 몇 가지 확장 기능을 더했다. 맥·Windows·Android와 브라우저에서 돈다. 구조는 [크로노스 윙 포트](https://github.com/ring-experimental/chronos-wing)와 같다.
 
 > [!IMPORTANT]
-> **이 저장소에는 게임이 들어 있지 않다.** 원본 실행 파일, 그림, 소리, 대사, 그리고 거기서 만든 파생물(번역 C, 화면 캡처, 리마스터 그림)은 저장소에도 커밋 기록에도 배포 페이지에도 없다. 실행하려면 원본 파일(KTF 판 `010100D5.jar`)을 직접 가지고 있어야 한다. 무엇이 어디에 있는지는 [docs/provenance.md](docs/provenance.md)에 적었다.
+> **이 저장소에는 게임이 들어 있지 않다.** 원본 실행 파일, 그림, 소리, 대사, 그리고 거기서 만든 파생물(번역 C, 화면 캡처, 리마스터 그림)은 저장소에도 커밋 기록에도 배포 페이지에도 없다. 실행하려면 원본 파일(KTF 판 `010100D5.jar` 또는 `010100D2.jar`)을 직접 가지고 있어야 한다. 무엇이 어디에 있는지는 [docs/provenance.md](docs/provenance.md)에 적었다.
 
 브라우저 판: <https://ring-experimental.github.io/ecpe/>
 페이지를 열고 가지고 있는 원본 jar(또는 그것을 담은 zip)를 고르면 그 기기 안에서 풀어 실행한다. 파일은 어디로도 전송되지 않는다.
@@ -18,7 +18,16 @@
 | Windows | `make windows JAR=<jar>` | 빌드 때 C로 번역 | 빌드할 때 | 안 한다 |
 | Android | `make android JAR=<jar>` | 빌드 때 C로 번역 | 빌드할 때 | 안 한다 |
 
-`JAR`를 주지 않으면 저장소 루트의 `origin/010100D5.jar`를 쓴다(`origin/`은 .gitignore로 막혀 있다).
+`JAR`를 주지 않으면 저장소 루트의 `origin/010100D5.jar`를 쓴다(`origin/`은 .gitignore로 막혀 있다). `JAR`에는 jar를 담은 원본 zip을 줘도 된다.
+
+## 지원하는 원본 판
+
+| 판 | 버전 | 실행 이미지 | 비고 |
+|---|---|---|---|
+| KTF `010100D5` | 01.00.00 | `client.bin1236` | 기준 판. `restored/`와 `host/`의 주소는 이 판의 것이다 |
+| KTF `010100D2` | 01.00.02 | `client.bin1224` | 기준 판과 함수 2212개가 같고 120개가 조금 다르다(키 아이템 보정 등). 주소는 대응표로 맞춘다 |
+
+판마다 다른 것(함수·데이터 주소, GOT 칸, 게임 객체 필드)은 모두 `native/ver/<AID>.map`에 있다. 기준 판도 빈 표 하나다. 자세히는 [native/README.md](native/README.md) '원본 판'. 다른 판을 네이티브로 빌드할 때는 빌드 폴더를 나눈다: `make B=build-d2 JAR=<010100D2 zip 또는 jar>`.
 
 ```mermaid
 flowchart TD

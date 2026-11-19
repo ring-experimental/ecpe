@@ -23,8 +23,6 @@ enum {
     FN_SKILL_NAME = 0x123f78,  // (스킬DB, id) -> 이름
     FN_SKILL_DESC = 0x123f98,  // (스킬DB, id) -> 설명
     FN_ICON = 0x11d650,        // (B, x, y, id, [sp]아이콘) 아이템 칸 + 아이콘
-
-    GOT = 0x14e624,            // PIC 코드의 sl. 데이터 포인터는 GOT[off]에 실제 주소로 들어 있다.
     GOT_CAT = 0x2ec,           // 아이템 분류별 id 끝(5칸: 8,12,19,22,28)
     GOT_EP_COL = 0x2e0,        // 적 정보 막대 색 4개
     GOT_NO_ITEM = 0x2f4, GOT_NO_HOT = 0x2f8, GOT_NO_COMBI = 0x2fc, GOT_NO_SPECIAL = 0x30c, GOT_NO_SKILL = 0x310,
@@ -60,7 +58,7 @@ enum {
 // R32 등은 지역 변수 c를 쓴다. 래퍼 밖의 도우미는 전역 cpu를 본다(래퍼의 c도 같은 &cpu다).
 void ab_hud(void);   // restored/autobattle.c
 static cpu_t *const c = &cpu;
-#define GOTP(o) R32(GOT + (o))
+#define GOTP(o) R32(GOT_ADDR((o)))
 
 // 이번 프레임에 원본이 그리려던 것
 static struct {
@@ -157,7 +155,7 @@ static void emit_members(uint32_t B) {
         int mpmax = (int)R32(M + M_MPMAX), atbmax = (int)R32(S + 0xc), atbv = (int)R32(S + 0x10);
         int mg = (int)R32(M + M_MG), mgmax = (int)R32(M + M_MGMAX);
         L_item();
-        str_or_empty("name", CALL(vfn(M, 0x1c), M));
+        str_or_empty("name", CALLP(vfn(M, 0x1c), M));
         ui_int("hp", hp); ui_int("hpmax", hpmax); ui_int("hp_pct", pct(hp, hpmax));
         ui_int("mp", mp); ui_int("mpmax", mpmax); ui_int("mp_pct", pct(mp, mpmax));
         ui_int("atb_pct", pct(atbv, atbmax)); ui_bool("atb_full", atbv >= atbmax);
@@ -388,7 +386,7 @@ static void emit_enemies(uint32_t B, int with_res) {
         uint32_t S = R32(X + X_STATS);
         L_item();
         ui_fmt("letter", "%c", 'A' + i);   // 원본은 0x61+i 프레임(알파벳 기호)
-        str_or_empty("name", CALL(vfn(X, 0x14), X));
+        str_or_empty("name", CALLP(vfn(X, 0x14), X));
         ui_int("hp", (int)R32(S));
         {
             L_begin("res");
@@ -545,7 +543,7 @@ static void emit_result(uint32_t B) {
         if (!M) continue;
         int ko = (R32(M + M_FLAGS) & MF_KO) != 0;
         L_item();
-        str_or_empty("name", CALL(vfn(M, 0x1c), M));
+        str_or_empty("name", CALLP(vfn(M, 0x1c), M));
         ui_int("exp", ko ? 0 : exp);
         ui_bool("ko", ko);
         ui_bool("lvup", R32(M + M_LVUP) != 0);
@@ -557,7 +555,7 @@ static void emit_result(uint32_t B) {
     for (int i = 0; i < 3 && i < n; i++) {
         uint32_t M = R32(P + P_MEM + 4 * i);
         if (!M || !R32(M + M_SKILLGET)) continue;
-        uint32_t name = CALL(vfn(M, 0x1c), M);
+        uint32_t name = CALLP(vfn(M, 0x1c), M);
         char b[96];
         snprintf(b, sizeof b, gstr(GOTP(GOT_SKILL_GET)), name ? gstr(name) : "");
         L_item(); ui_str("t", b); ui_close();
@@ -650,7 +648,7 @@ void f_23120(cpu_t *c) {
         snprintf(msg_text, sizeof msg_text, "%s", s);
         msg_on = msg_text[0] != 0;
         uint32_t B = R32(R32(msg + 4) + 0x1c8), grid = R32(B + SC_GRID);
-        CALL(vfn(grid, 0xc), grid, msg + MSG_RECT);
+        CALLP(vfn(grid, 0xc), grid, msg + MSG_RECT);
         ret = 0;
     }
     load_regs(regs);

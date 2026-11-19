@@ -36,7 +36,7 @@ typedef struct { int type; char t[HP_LEN]; } hpara_t;
 
 // 글 하나(도움말, 게임속으로)의 설정과 만든 결과. 지금 보는 항목(sec)도 여기 있어 이 글을 보는 화면끼리 같다.
 typedef struct {
-    uint32_t got;                  // 글 포인터가 든 GOT 칸
+    uint32_t got;                  // 글 포인터가 든 GOT 칸(기준 판 오프셋)
     const char *sec_mark;          // 항목 머리 표시(CP949 두 바이트): 【(도움말), ◈(게임속으로)
     uint32_t hash; int nlines;     // 이 글(FNV-1a, 줄 수)이면 아래 표를 쓴다
     const unsigned char *tight; size_t ntight; // 이어 붙일 때 띄우지 않는 줄
@@ -58,8 +58,8 @@ static const unsigned char tight_intro[] = {2, 3, 4, 5, 7, 9, 15, 16, 18, 25, 27
 static const unsigned char comma_intro[] = {39, 40, 41}; // 사운드 저작권자: fee le monde, HIDEpi, GAIA Head Office, TAM
 
 static hdoc_t docs[HELP_COUNT] = {
-    [HELP_MAIN] = {0x14e624 + 0x218, "\xa1\xbc", 0xf80c1b62u, 134, tight_help, sizeof tight_help, NULL, 0},
-    [HELP_INTRO] = {0x14e624 + 0x21c, "\xa2\xc2", 0x99427accu, 43, tight_intro, sizeof tight_intro, comma_intro, sizeof comma_intro},
+    [HELP_MAIN] = {0x218, "\xa1\xbc", 0xf80c1b62u, 134, tight_help, sizeof tight_help, NULL, 0},
+    [HELP_INTRO] = {0x21c, "\xa2\xc2", 0x99427accu, 43, tight_intro, sizeof tight_intro, comma_intro, sizeof comma_intro},
 };
 
 static bool in_list(const unsigned char *l, size_t n, int v) { for (size_t i = 0; i < n; i++) if (l[i] == v) return true; return false; }
@@ -79,7 +79,7 @@ static bool starts(const char *s, int n, const char *mark) { return n >= 2 && (u
 // 들여 쓰지 않은 줄은 앞 문단에 잇고, 일반 문단 뒤에 들여 쓴 줄은 하위 줄로 따로 둔다(◈ 핫슬롯이용의 "등록: … / 삭제: …").
 static void build(hdoc_t *D) {
     static const char *st[HL_MAX]; static int ln[HL_MAX];
-    uint32_t addr = R32_(&cpu, D->got);
+    uint32_t addr = R32_(&cpu, GOT_ADDR(D->got));
     if (!addr || addr == D->built) return;
     D->built = addr;
     const char *text = gstr(addr);

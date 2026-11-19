@@ -8,7 +8,7 @@
 
 #define G32(a) R32_(&cpu, (a))
 enum {
-    APP_PTR = 0x14ee34, APP_GAME = 0x48,
+    APP_GAME = 0x48,
     GAME_GFX = 0x08, GAME_MENU = 0x1d4, MENU_SHEET = 0x14,
     GFX_CLIP = 0xdc,            // {x, y, w, h}
     FRAME_FIRST = 60,           // 아크, 니하트, 제레미, 쟈이언트, 이오, 라즈파샤, 위지윅, 어린 니하트(67), 키리엔(68)
@@ -18,7 +18,7 @@ void orig_f_56ec(cpu_t *c);
 void f_56ec(cpu_t *c) {
     int id = (int)c->r[1] - FRAME_FIRST;
     if (!ui_capturing || id < 0 || id >= UI_ILLUST_COUNT || !ui_illust() || !ui_illust_has(id)) { orig_f_56ec(c); return; }
-    uint32_t G = G32(G32(APP_PTR) + APP_GAME);
+    uint32_t G = G32(G32(APP_ADDR) + APP_GAME);
     if (!G || c->r[0] != G32(G32(G + GAME_MENU) + MENU_SHEET)) { orig_f_56ec(c); return; }
     uint32_t regs[16], clip[4], gfx = G32(G + GAME_GFX);
     memcpy(regs, c->r, sizeof regs);

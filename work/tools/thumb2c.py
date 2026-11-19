@@ -2,7 +2,9 @@
 """codemap.json의 Thumb 함수를 C로 기계 번역한다(방식 시험용).
 
 레지스터와 플래그는 함수 안에서 지역 변수로 두고 호출과 복귀 때만 cpu 구조체와 맞춘다. 메모리는 m(게스트 주소 + 베이스)로 접근한다.
-thumb2c.py <client.bin> <codemap.json> <out.c>
+thumb2c.py <client.bin> <codemap.json> <out.c> [<옮긴 함수 목록> [<판 대응표>]]
+판 대응표(native/ver/<AID>.map)를 주면 기준 판(010100D5)이 아닌 판을 번역한다. 함수 이름은 기준 판의 오프셋으로 붙이고
+(restored/의 f_<오프셋>, orig_f_<오프셋>이 그대로 맞는다), 기준 판에 짝이 없는 함수는 f_u<오프셋>이다. 옮긴 함수 목록도 기준 판 오프셋이다.
 """
 import json, re, struct, sys
 from capstone import Cs, CS_ARCH_ARM, CS_MODE_THUMB
@@ -14,6 +16,14 @@ GOT0 = cm['summary']['GOT'][0]
 u32 = lambda o: struct.unpack_from('<I', data, o)[0]
 md = Cs(CS_ARCH_ARM, CS_MODE_THUMB)
 funcs = {int(k, 16): v for k, v in cm['roots'].items() if v['thumb'] and v.get('addrs')}
+CANON = {}   # 이 판의 함수 오프셋 → 기준 판 오프셋
+if len(sys.argv) > 5:
+    for l in open(sys.argv[5]):
+        t = l.split()
+        if t and t[0] == 'fn': CANON[int(t[2], 16) - LOAD] = int(t[1], 16) - LOAD
+def NAME(e):
+    if not CANON: return f'{e:x}'
+    return f'{CANON[e]:x}' if e in CANON else f'u{e:x}'
 RN = {'sb': 'r9', 'sl': 'r10', 'fp': 'r11', 'ip': 'r12'}
 def R(n):
     return RN.get(n, n)
@@ -150,7 +160,7 @@ def gen(entry, f):
     tabs = {int(t): n for t, n in f['tables']}
     addrs = f['addrs']
     aset = set(addrs)
-    out = [f'DEF({entry:x}){{']
+    out = [f'DEF({NAME(entry)},{entry:x}){{']
     decoded = {}
     for a in addrs:
         decoded[a] = next(md.disasm(data[a:a + 4], a, 1))
@@ -186,7 +196,7 @@ def gen(entry, f):
             if a in f['far']:
                 body.append(f'lr={(nxt + LOAD) | 1}u;goto L{t:x};'); fall = False
             else:
-                body.append(f'lr={(nxt + LOAD) | 1}u;{SYNC}f_{t:x}(c);{RELOAD}' if t in funcs else f'lr={(nxt + LOAD) | 1}u;{SYNC}call_ind(c,{t + LOAD | 1}u);{RELOAD}')
+                body.append(f'lr={(nxt + LOAD) | 1}u;{SYNC}f_{NAME(t)}(c);{RELOAD}' if t in funcs else f'lr={(nxt + LOAD) | 1}u;{SYNC}call_ind(c,{t + LOAD | 1}u);{RELOAD}')
         elif m == 'bx':
             if ops == 'lr':
                 body.append(f'{SYNC}return;')
@@ -240,11 +250,11 @@ with open(sys.argv[3], 'w') as w:
     w.write('#define TR_LOCAL_REGS\n#include "thumbrt.h"\n')
     # TRACE_STACK: 함수마다 드나듦을 알려 호출 나무를 남긴다(runtime.c ts_enter, 진단용 빌드 ecpe-trace).
     w.write('#ifdef TRACE_STACK\nvoid ts_enter(uint32_t a);void ts_leave(void);\n'
-            '#define DEF(x) static void b_##x(cpu_t*c);void f_##x(cpu_t*c){ts_enter(0x##x);b_##x(c);ts_leave();}static void b_##x(cpu_t*c)\n'
-            '#define ODEF(x) static void ob_##x(cpu_t*c);void orig_f_##x(cpu_t*c){ts_enter(0x##x);ob_##x(c);ts_leave();}static void ob_##x(cpu_t*c)\n'
-            '#else\n#define DEF(x) void f_##x(cpu_t*c)\n#define ODEF(x) void orig_f_##x(cpu_t*c)\n#endif\n')
+            '#define DEF(x,a) static void b_##x(cpu_t*c);void f_##x(cpu_t*c){ts_enter(0x##a);b_##x(c);ts_leave();}static void b_##x(cpu_t*c)\n'
+            '#define ODEF(x,a) static void ob_##x(cpu_t*c);void orig_f_##x(cpu_t*c){ts_enter(0x##a);ob_##x(c);ts_leave();}static void ob_##x(cpu_t*c)\n'
+            '#else\n#define DEF(x,a) void f_##x(cpu_t*c)\n#define ODEF(x,a) void orig_f_##x(cpu_t*c)\n#endif\n')
     for e in funcs:
-        w.write(f'void f_{e:x}(cpu_t*c);\n')
+        w.write(f'void f_{NAME(e)}(cpu_t*c);\n')
     # 사람이 옮긴 함수(파일 오프셋 목록)는 건너뛴다. 정의는 native/restored/에 있다.
     restored = {int(l.split()[0], 16) for l in open(sys.argv[4]) if l.strip() and not l.startswith('#')} if len(sys.argv) > 4 else set()
     # `wrap`이 붙은 함수는 orig_f_<오프셋>으로 남겨 읽는 C가 원본을 호출할 수 있게 한다.
@@ -252,19 +262,19 @@ with open(sys.argv[3], 'w') as w:
     wrapped = {int(x[0], 16) for x in rows if x[-1] == 'wrap'}
     restored -= wrapped
     for e, f in sorted(funcs.items()):
-        if e in restored:
+        if CANON.get(e, e if not CANON else None) in restored:
             continue
         try:
             code = gen(e, f)
-            if e in wrapped:
-                code = code.replace(f'DEF({e:x}){{', f'ODEF({e:x}){{', 1)
+            if CANON.get(e, e if not CANON else None) in wrapped:
+                code = code.replace(f'DEF({NAME(e)},', f'ODEF({NAME(e)},', 1)
             w.write(code + '\n')
         except Exception as ex:
             fails.append((hex(e), str(ex)))
-            w.write(f'void f_{e:x}(cpu_t*c){{c->fault=1;}}\n')
+            w.write(f'void f_{NAME(e)}(cpu_t*c){{c->fault=1;}}\n')
     w.write('const fn_entry_t fn_table[]={\n')
     for e in sorted(funcs):
-        w.write(f'{{{e + LOAD}u,f_{e:x}}},\n')
+        w.write(f'{{{e + LOAD}u,f_{NAME(e)}}},\n')
     w.write('{0,0}};\n')
 print('functions', len(funcs), 'translate failures', len(fails), fails[:20])
 print('flag leaks', len(flag_leaks), flag_leaks[:40])

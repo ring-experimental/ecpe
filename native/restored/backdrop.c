@@ -10,6 +10,7 @@
 
 static int wrap(int i, int n) { return (i % n + n) % n; }
 
+#define GAME_VIEW VG(GAME_VIEW_D5) // 게임 객체 필드: 판마다 다르다(host/ver.h)
 enum {
     TILE = 14,
     FN_SET_CLIP = 0x103900,     // (gfx, x, y, w, h)
@@ -18,7 +19,7 @@ enum {
 
     LAYER_OWNER = 0x00, LAYER_COLS = 0x10, LAYER_ROWS = 0x14, LAYER_DATA = 0x18,
     OWNER_GAME = 0x00,
-    GAME_GFX = 0x08, GAME_VIEW = 0x568, // 필드 보기 사각형(x, y, w, h)
+    GAME_GFX = 0x08, GAME_VIEW_D5 = 0x568, // 필드 보기 사각형(x, y, w, h)
     GFX_TILE_MODE = 0x34,               // 원본이 타일을 그리는 동안 바꿔 두는 값(0x3f0c)
     TILE_MODE = 0xd0745800,
     HORIZON = 210,                      // 레이어의 이 줄이 보기 높이의 83/128 자리에 온다

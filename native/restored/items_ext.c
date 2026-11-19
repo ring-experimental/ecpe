@@ -20,7 +20,7 @@
 
 #define G32(a) R32_(&cpu, (a))
 #define G8(a) R8_(&cpu, (a))
-enum { APP_PTR = 0x14ee34, APP_GAME = 0x48, G_PARTY = 0x1c0, G_ITEMDB = 0x1cc, PARTY_INV = 0xa8, INV_COUNT = 0x50,
+enum { APP_GAME = 0x48, G_PARTY = 0x1c0, G_ITEMDB = 0x1cc, PARTY_INV = 0xa8, INV_COUNT = 0x50,
        NAME_POOL_COPY = 0x5700, NAME_BASE = 0x6000, ORIG_ITEMS = 246, DB_MAX = 256 };
 
 extern char save_dir[1024];
@@ -86,7 +86,7 @@ static uint32_t gstring(const char *utf8) { // 게스트 힙에 CP949로 놓는�
 
 // ---------------------------------------------------------------- 인벤토리
 uint32_t ext_game(void) {
-    uint32_t app = G32(APP_PTR);
+    uint32_t app = G32(APP_ADDR);
     return app ? G32(app + APP_GAME) : 0;
 }
 uint32_t ext_inv(void) {

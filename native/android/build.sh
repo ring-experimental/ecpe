@@ -54,7 +54,7 @@ INC=(-Ihost -I$SRC/include)
 cd $N
 OBJS=()
 mkdir -p $O/obj
-for f in host/*.c restored/*.c; do
+for f in host/*.c restored/*.c build/ver_tables.c; do
   o=$O/obj/${${f//\//_}%.c}.o; OBJS+=$o
   [[ $o -nt $f && $o -nt host/host.h && $o -nt host/ui.h ]] || $CC -O2 -g0 -w -fPIC -std=gnu11 ${=MAP} $INC -c $f -o $o &
 done

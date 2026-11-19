@@ -145,6 +145,7 @@ async function install(files) {
       store.writeFile(path, data);
     }
     store.writeFile(PERSIST + '/data.version', DATA_VERSION);
+    store.writeFile(PERSIST + '/game.version', game.version);
     removeTree(ICONS);
     if (game.icon) await saveIcons(game.icon).catch(e => console.warn('아이콘을 만들지 못함', e));
     const err = await syncNow();
@@ -204,7 +205,10 @@ async function start() {
     try { Module.smafev = (await WebAssembly.instantiate(await (await fetch('smafev.wasm')).arrayBuffer(), {})).instance.exports; }
     catch (e) { console.warn('소리 변환기를 열지 못함: 소리 없이 진행', e); }
   }
-  const args = [PERSIST + '/game', '--save', PERSIST + '/save', '--soundfont', '/1mgm.sf2'];
+  // 판마다 세이브 폴더를 나눈다(판끼리 세이브 구조가 같은지 확인하지 않았다). 기준 판은 예전 자리 그대로.
+  const version = exists(PERSIST + '/game.version') ? store.readFile(PERSIST + '/game.version', { encoding: 'utf8' }) : '010100D5';
+  const saveDir = PERSIST + (version === '010100D5' ? '/save' : '/save-' + version);
+  const args = [PERSIST + '/game', '--save', saveDir, '--soundfont', '/1mgm.sf2'];
   const extra = new URLSearchParams(location.search); // 시험용: ?touch=1 화면 패드, ?width=<폭>
   if (navigator.maxTouchPoints > 0 || extra.get('touch')) args.push('--touch');
   if (extra.get('width')) args.push('--width', extra.get('width'));
@@ -249,7 +253,7 @@ $('source').addEventListener('change', e => { if (e.target.files.length) install
 $('start').addEventListener('click', () => start());
 $('forget').addEventListener('click', async () => {
   removeTree(PERSIST + '/game');
-  for (const f of ['/data.version']) if (exists(PERSIST + f)) store.unlink(PERSIST + f);
+  for (const f of ['/data.version', '/game.version']) if (exists(PERSIST + f)) store.unlink(PERSIST + f);
   removeTree(ICONS);
   await syncNow();
   show();

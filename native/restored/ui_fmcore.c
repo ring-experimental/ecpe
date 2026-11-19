@@ -23,8 +23,9 @@
 #define G8(a) R8_(&cpu, (a))
 #define FN(x) (0x100000u + (x))
 
+#define GAME_CHEAT VG(GAME_CHEAT_D5) // 게임 객체 필드: 판마다 다르다(host/ver.h)
+#define GAME_PLACE VG(GAME_PLACE_D5) // 게임 객체 필드: 판마다 다르다(host/ver.h)
 enum {
-    GOT = 0x14e624,             // PIC 코드의 sl. GOT 칸에는 실행 때 게스트 주소가 들어 있다.
     GOT_FACE_DX = 0x458, GOT_FACE_DY = 0x45c, // 메인 카드 초상화 오프셋 표(9바이트, 캐릭터 id별, 0x43 그림은 8번)
     GOT_MSG_NOUSE = 0x460, GOT_MSG_NOSELL = 0x464, GOT_MSG_HOTSAVE = 0x468, GOT_MSG_DUP = 0x46c,
     GOT_CHEAT_ON = 0x474, GOT_CHEAT_OFF = 0x478,
@@ -42,7 +43,7 @@ enum {
     SCR_OPTION = 7, OPT_SUB = 0x0c, OPT_HELP = 3,
     // 게임 객체
     GAME_GFX = 0x08, GAME_FLAGS = 0x14, GAME_PLAY_T0 = 0x24, GAME_PLAY_ACC = 0x28,
-    GAME_PARTY = 0x1c0, GAME_ITEMDB = 0x1cc, GAME_CLASS_NAMES = 0x314, GAME_CHEAT = 0x4bc, GAME_PLACE = 0x4dc,
+    GAME_PARTY = 0x1c0, GAME_ITEMDB = 0x1cc, GAME_CLASS_NAMES = 0x314, GAME_CHEAT_D5 = 0x4bc, GAME_PLACE_D5 = 0x4dc,
     FLAG_PLACE_TABLE = 0x08,
     // 파티와 인벤토리(파티 + 0xa8)
     PARTY_CHARS = 0x84, PARTY_INV = 0xa8, PARTY_MAX = 5,
@@ -67,7 +68,7 @@ enum {
 
 // ---- 공통 도우미 ----
 
-static const char *got_str(int off) { return gstr(G32(GOT + off)); }
+static const char *got_str(int off) { return gstr(G32(GOT_ADDR(off))); }
 
 static uint32_t item_rec(uint32_t db, int id) { return G32(db + IDB_RECS) + 32u * (uint32_t)id; }
 static const char *item_name(uint32_t db, int id) { return gstr(G32(db + IDB_NAMES) + G16(item_rec(db, id) + REC_NAME)); }
@@ -117,7 +118,7 @@ static void put_face(const char *key, uint32_t game, uint32_t menu, uint32_t ch)
     int id = (int)G8(ch + CH_ID);
     uint32_t frame = CALL(FN(0x12fe8), game, (uint32_t)id, 0);
     int k = frame == FRAME_FACE_ALT ? 8 : id;
-    int dx = (int8_t)G8(G32(GOT + GOT_FACE_DX) + (uint32_t)k), dy = (int8_t)G8(G32(GOT + GOT_FACE_DY) + (uint32_t)k);
+    int dx = (int8_t)G8(G32(GOT_ADDR(GOT_FACE_DX)) + (uint32_t)k), dy = (int8_t)G8(G32(GOT_ADDR(GOT_FACE_DY)) + (uint32_t)k);
     uint32_t gfx = G32(game + GAME_GFX);
     int x, y;
     cell(40, 40, &x, &y);
@@ -203,7 +204,7 @@ void f_2faa4(cpu_t *c) {
     uint32_t n = G32(menu + MENU_SCREEN);
     if (n == SCR_OPTION && G32(G32(menu + MENU_SCREENS + 4 * SCR_OPTION) + OPT_SUB) == OPT_HELP) { fm_shell_end(); return; }
     uint32_t scr = G32(menu + MENU_SCREENS + 4 * n);
-    CALL(G32(G32(scr) + 4), scr, G32(G32(menu + MENU_GAME) + GAME_GFX));
+    CALLP(G32(G32(scr) + 4), scr, G32(G32(menu + MENU_GAME) + GAME_GFX));
     fm_shell_end();
 }
 
@@ -389,7 +390,7 @@ void f_31b18(cpu_t *c) {
     ui_list("cats");
     for (int i = 0; i < CATS; i++) {
         ui_item();
-        ui_str("name", gstr(G32(GOT + GOT_ITEM_CATS) + 10u * (uint32_t)i));
+        ui_str("name", gstr(G32(GOT_ADDR(GOT_ITEM_CATS)) + 10u * (uint32_t)i));
         ui_int("dis", sell && i == KEY_CAT); // 판매 모드에서 키아이템 탭은 회색(0x31b18)
         ui_close();
     }
@@ -683,7 +684,7 @@ void f_32778(cpu_t *c) {
     for (int i = 0; i < SLOTS; i++) {
         uint32_t rec = G32(ch + CH_EQUIP + 4u * (uint32_t)i);
         ui_item();
-        ui_str("kind", gstr(G32(GOT + GOT_SLOT_NAMES) + 12u * (uint32_t)i));
+        ui_str("kind", gstr(G32(GOT_ADDR(GOT_SLOT_NAMES)) + 12u * (uint32_t)i));
         ui_int("empty", rec == 0);
         ui_int("enh", rec ? enh_step(ch, i) : 0); // 칸 강화 단계(restored/enhance.c)
         if (rec) { int id = item_id_of(db, rec); ui_str("name", item_name(db, id)); put_icon("icon", menu, db, id); }

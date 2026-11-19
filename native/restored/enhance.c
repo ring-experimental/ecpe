@@ -35,8 +35,8 @@ static int cost_of(int target) { return 1 + (target - 1) / 2; }
 #define STEP_PCT 10 // 단계마다 기본값의 10%(올림)
 
 enum {
-    GOT = 0x14e624, GOT_SLOT_NAMES = 0x4a0,
-    APP_PTR = 0x14ee34, APP_GAME = 0x48,
+    GOT_SLOT_NAMES = 0x4a0,
+    APP_GAME = 0x48,
     G_STATE = 0x0c, G_GFX = 0x08, G_PARTY = 0x1c0, G_ITEMDB = 0x1cc, G_MENU = 0x1d4, G_CLASS_NAMES = 0x314, SCENE_MENU = 14,
     M_SPR = 0x04, M_SHEET = 0x14, M_SCREEN = 0x18, M_SCREENS = 0x24,
     PARTY_CHARS = 0x84, PARTY_MAX = 5,
@@ -186,7 +186,7 @@ static const char *char_name(uint32_t game, uint32_t ch) {
     if (user) return gstr(user);
     return gstr(G32(game + G_CLASS_NAMES) + G16(G32(ch + CH_CLASS) + CLS_NAME));
 }
-static const char *slot_kind(int k) { return gstr(G32(GOT + GOT_SLOT_NAMES) + 12u * (uint32_t)k); }
+static const char *slot_kind(int k) { return gstr(G32(GOT_ADDR(GOT_SLOT_NAMES)) + 12u * (uint32_t)k); }
 static const char *rec_name(uint32_t game, uint32_t rec) { return gstr(G32(item_db(game) + IDB_NAMES) + G16(rec + REC_NAME)); }
 static int members_n(uint32_t game) { int n = 0; for (int i = 0; i < PARTY_MAX; i++) if (party_char(game, i)) n++; return n; }
 
@@ -227,7 +227,7 @@ static void put_face(const char *key, uint32_t game, uint32_t menu, uint32_t ch)
     int id = (int)G8(ch + CH_ID);
     uint32_t frame = CALL(FN(0x12fe8), game, (uint32_t)id, 0);
     int k = frame == 0x43 ? 8 : id;
-    int dx = (int8_t)G8(G32(GOT + 0x458) + (uint32_t)k), dy = (int8_t)G8(G32(GOT + 0x45c) + (uint32_t)k);
+    int dx = (int8_t)G8(G32(GOT_ADDR(0x458)) + (uint32_t)k), dy = (int8_t)G8(G32(GOT_ADDR(0x45c)) + (uint32_t)k);
     uint32_t gfx = G32(game + G_GFX);
     int x, y;
     cell(40, 40, &x, &y);

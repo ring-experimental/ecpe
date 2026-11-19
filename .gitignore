@@ -34,3 +34,4 @@ work/config.local.sh
 work/ui/survey/shots/
 # 자료 모음(원본 관련 이미지)
 에픽크로니클자료/
+native/build-*/

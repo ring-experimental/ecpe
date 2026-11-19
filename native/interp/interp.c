@@ -29,8 +29,9 @@ static void setup(void) {
 #ifdef INTERP_PROF
     atexit(prof_dump);
 #endif
-    for (int i = 0; interp_hooks[i].addr; i++) hook_at[(interp_hooks[i].addr - IMAGE_LOAD) >> 1] = (uint16_t)(i + 1);
-    for (int i = 0; arm_helper_addrs[i]; i++) hook_at[(arm_helper_addrs[i] - IMAGE_LOAD) >> 1] = HELPER;
+    // 표의 주소는 기준 판 것이다. 지금 판의 자리로 바꿔 건다(host/ver.h).
+    for (int i = 0; interp_hooks[i].addr; i++) hook_at[(VF(interp_hooks[i].addr) - IMAGE_LOAD) >> 1] = (uint16_t)(i + 1);
+    for (int i = 0; arm_helper_addrs[i]; i++) hook_at[(VF(arm_helper_addrs[i]) - IMAGE_LOAD) >> 1] = HELPER;
 }
 
 static inline bool cond(const flags_t *f, uint32_t cc) {

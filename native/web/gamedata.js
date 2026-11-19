@@ -5,8 +5,12 @@
 (function (root) {
 'use strict';
 
-// KTF 판 실행 이미지(client.bin1236)의 SHA-256. restored/의 주소가 이 판에 맞춰져 있다.
-const CLIENT_SHA256 = 'f3b1e2b8aab918d9e567d819c5048f9a36be0acb37847e0171ca790f6850ab2e';
+// 지원하는 판: 실행 이미지의 SHA-256 → 판 이름. restored/는 기준 판(010100D5) 주소로 쓰여 있고,
+// 다른 판은 native/ver/<AID>.map 대응표로 맞춘다(host/ver.h). 판은 호스트가 실행 이미지 크기로 다시 가른다.
+const VERSIONS = {
+  'f3b1e2b8aab918d9e567d819c5048f9a36be0acb37847e0171ca790f6850ab2e': '010100D5', // KTF 01.00.00(기준)
+  '484e9f3aa0669ba07e02933577e1274aa573f02cdf75df171d613aa61998628a': '010100D2', // KTF 01.00.02
+};
 // 호스트가 읽는 데이터 파일(native/Makefile의 windows 대상과 같은 목록).
 const DATA_FILES = ['dataset.dat', 'map.pmd', 'res.gmf', 'script.bin', 'tileset.pts'];
 
@@ -70,12 +74,12 @@ async function extractGame(sources) {
       if (!jar && [...inner.keys()].some(n => /client\.bin\d+$/.test(n))) jar = bytes; // jar를 zip으로 이름만 바꾼 경우
     }
   }
-  if (!jar) throw new Error('원본 jar(010100D5.jar)를 찾지 못했습니다.');
+  if (!jar) throw new Error('원본 jar(010100D5.jar 또는 010100D2.jar)를 찾지 못했습니다.');
   const files = await unzip(jar);
   const image = [...files.keys()].find(n => /^client\.bin\d+$/.test(n));
   if (!image) throw new Error('게임 실행 파일(client.bin)이 들어 있지 않습니다.');
   const hash = await sha256(files.get(image));
-  if (hash !== CLIENT_SHA256) throw new Error('지원하는 판본이 아닙니다(KTF 판 010100D5만 됩니다).');
+  if (!VERSIONS[hash]) throw new Error('지원하는 판본이 아닙니다(KTF 판 010100D5, 010100D2만 됩니다).');
   const game = new Map();
   for (const name of DATA_FILES) {
     if (!files.has(name)) throw new Error('게임 데이터가 빠져 있습니다: ' + name);
@@ -83,9 +87,10 @@ async function extractGame(sources) {
   }
   game.set('client.bin', files.get(image));
   game.icon = icon;
+  game.version = VERSIONS[hash];
   return game;
 }
 
-root.ECGameData = { unzip, extractGame, sha256, DATA_FILES };
+root.ECGameData = { unzip, extractGame, sha256, DATA_FILES, VERSIONS };
 if (typeof module !== 'undefined') module.exports = root.ECGameData;
 })(typeof globalThis !== 'undefined' ? globalThis : this);

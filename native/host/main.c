@@ -172,7 +172,7 @@ static void write_shot(const char *path) {
 
 static void game_key(int type, int code) {
     uint32_t a[3] = {(uint32_t)type, (uint32_t)code, 0};
-    guest_call(FN_INPUT, a, 3);
+    guest_call(VF(FN_INPUT), a, 3);
 }
 
 // 새 UI의 키 별칭(ui_key_map)은 누를 때 정하고, 뗄 때는 누를 때 보낸 키를 뗀다(그 사이 화면이 바뀌어도 짝이 맞게).
@@ -413,7 +413,7 @@ static void ctrl_poll(void) {
             fn = (uint32_t)strtoul(p, &end, 16);
             int n = 0;
             for (p = end; n < 8; p = end) { uint32_t v = (uint32_t)strtoul(p, &end, 16); if (end == p) break; args[n++] = v; }
-            if (fn) { uint32_t r = guest_call(0x100000 + fn, args, n); fprintf(stderr, "gcall %#x -> %#x\n", fn, r); }
+            if (fn) { uint32_t r = guest_call(VF(0x100000 + fn), args, n); fprintf(stderr, "gcall %#x -> %#x\n", fn, r); }
         }
         else if (gamepad_ctrl(lines[i])) {}
         else if (!strcmp(lines[i], "quit")) running = false;
@@ -428,6 +428,9 @@ static void load_image(void) {
     if (!f) { SDL_Log("%s 없음", path); exit(1); }
     size_t n = fread(c->m + IMAGE_LOAD, 1, 0x100000, f);
     fclose(f);
+    // 판을 고른다(host/ver.h). restored/는 기준 판 주소로 쓰여 있고 다른 판에서는 대응표로 바꾼다.
+    if (!ver_select(c->m + IMAGE_LOAD, (uint32_t)n)) { SDL_Log("모르는 판의 client.bin(%zu바이트)", n); exit(1); }
+    fprintf(stderr, "판 %s\n", ver_name());
     // 원본 시작 코드(0xc)가 하는 재배치와 같다. BSS는 새로 받은 페이지라 이미 0이다.
     uint32_t relocs = R32(IMAGE_LOAD + 0x70), base = IMAGE_LOAD + 0x74 + relocs * 4;
     for (uint32_t i = 0; i < relocs; i++) {
@@ -445,7 +448,7 @@ static void start_game(void) {
     heap_init();
     api_install();
     uint32_t start[2] = {0, 0};
-    guest_call(FN_START, start, 2);
+    guest_call(VF(FN_START), start, 2);
 }
 
 // 게스트 메모리와 호스트 쪽 게임 상태를 비우고 startClet부터 다시 부른다.

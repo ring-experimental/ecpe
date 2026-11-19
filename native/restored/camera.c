@@ -9,11 +9,12 @@
 // 세로는 화면 높이가 원본과 같으므로 건드리지 않는다.
 #include "restored.h"
 
+#define GAME_VIEW_W VG(GAME_VIEW_W_D5) // 게임 객체 필드: 판마다 다르다(host/ver.h)
 enum {
     ORIG_W = 240,
     FIELD_GAME = 0x00, FIELD_CAM_X = 0x18, FIELD_MAP_W = 0x78, // 맵 폭(px)
     GAME_FLAGS = 0x20, FLAG_CLAMP = 0x10,
-    GAME_VIEW_W = 0x568 + 8,
+    GAME_VIEW_W_D5 = 0x568 + 8,
 };
 
 void orig_f_2f3e4(cpu_t *c);

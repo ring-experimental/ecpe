@@ -27,7 +27,6 @@
 #include <string.h>
 
 enum {
-    GOT = 0x14e624,
     S_MENU = 0x04, S_WRAP = 0x08, S_STATE = 0x0c, S_TYPE = 0x1c, S_SHOP = 0x20, S_TOPCUR = 0x24, S_CATCUR = 0x28,
     S_SUB = 0x2c, S_QTY = 0x30, S_YESNO = 0x34, S_LTOP = 0x44, S_SEL = 0x48, S_CATMASK = 0x58,
     GAME_PARTY = 0x1c0, PARTY_INV = 0xa8, INV_GOLD = 0, INV_COIN = 4, INV_DB = 0x160, PARTY_CHARS = 0x84,
@@ -41,7 +40,7 @@ enum {
 void orig_f_360b0(cpu_t *c);
 
 // 원본 메뉴 글(GOT 칸에 든 CP949 문자열 포인터)
-static const char *gs(cpu_t *c, uint32_t off) { return gstr(R32(GOT + off)); }
+static const char *gs(cpu_t *c, uint32_t off) { return gstr(R32(GOT_ADDR(off))); }
 
 static int cmask_of(int cur) { return cur == 0 ? 2 : cur == 1 ? 0x1c : 0x20; }
 

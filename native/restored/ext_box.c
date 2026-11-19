@@ -18,7 +18,7 @@ enum {
     RARITY_GOOD = 300, RARITY_RARE = 2000, RARITY_LEGEND = 8000,
 };
 
-enum { APP_PTR = 0x14ee34, G_ITEMDB = 0x1cc, REC_KIND = 0, REC_PRICE = 8, REC_FLAGS = 0xc, FLAG_NO_SELL = 1 << 18 };
+enum { G_ITEMDB = 0x1cc, REC_KIND = 0, REC_PRICE = 8, REC_FLAGS = 0xc, FLAG_NO_SELL = 1 << 18 };
 #define G32(a) R32_(&cpu, (a))
 
 static uint32_t rng_s;

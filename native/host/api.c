@@ -21,7 +21,7 @@ void api_install(void) {
     for (size_t t = 0; t < sizeof TABLES / sizeof TABLES[0]; t++) {
         uint32_t table = HOST_TABLES + (uint32_t)t * 0x400;
         for (uint32_t i = 0; i < 256; i++) W32(table + i * 4, API_BASE | TABLES[t].table << 16 | i * 2 | 1);
-        W32(IMAGE_BASE + TABLES[t].global, table);
+        W32(VD(IMAGE_BASE + TABLES[t].global), table);
     }
 }
 

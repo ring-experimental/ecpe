@@ -22,9 +22,10 @@
 
 int font_string_width(const uint8_t *s, int len);
 
+#define W_OPT_EDIT VG(W_OPT_EDIT_D5) // 게임 객체 필드: 판마다 다르다(host/ver.h)
+#define W_QUOTES VG(W_QUOTES_D5) // 게임 객체 필드: 판마다 다르다(host/ver.h)
+#define W_STAFF VG(W_STAFF_D5) // 게임 객체 필드: 판마다 다르다(host/ver.h)
 enum {
-    GOT = 0x14e624,
-    // 월드 객체 W(앱+0x48)
     W_GFX = 0x08, W_SCENE = 0x0c, W_SUB = 0x10, W_STATE = 0x14,
     W_OPT = 0x14c,       // 저장된 옵션/해금 플래그(gopt.sav 첫 워드)
     W_CUR = 0x15c,       // 메뉴 커서(쪽 화면에서는 쪽 번호, 한마디는 글 번호, 첫 실행은 진행 카운터)
@@ -35,9 +36,9 @@ enum {
     W_TSTR = 0x474,      // String: 한마디/랭킹 본문 작업본(+4가 char*)
     W_BLINK = 0x49c,     // 깜빡임 카운터. 한마디에서는 줄 스크롤 위치
     W_SCORE = 0x4ac,     // 보스열전 점수
-    W_OPT_EDIT = 0x540,  // 환경설정 작업본
-    W_QUOTES = 0x6d0,    // 한마디 자료(+8부터 NUL로 나뉜 글들, 빈 글로 끝)
-    W_STAFF = 0x6c8,     // 스태프롤 글 객체 목록
+    W_OPT_EDIT_D5 = 0x540,  // 환경설정 작업본
+    W_QUOTES_D5 = 0x6d0,    // 한마디 자료(+8부터 NUL로 나뉜 글들, 빈 글로 끝)
+    W_STAFF_D5 = 0x6c8,     // 스태프롤 글 객체 목록
 
     OPT_TURN = 0x1, OPT_SOUND_OFF = 0x2, OPT_QUICK = 0x40, OPT_SPEED_SHIFT = 8,
     OPT_TRIPLE = 0x4, OPT_HERO = 0x8, OPT_OST0 = 0x10000, OPT_STAFF = 0x400000,
@@ -49,8 +50,8 @@ enum {
 };
 
 static inline uint32_t rd(uint32_t a) { return R32_(&cpu, a); }
-static inline const char *got_str(uint32_t off) { return gstr(rd(GOT + off)); }
-static inline uint32_t got_ptr(uint32_t off) { return rd(GOT + off); }
+static inline const char *got_str(uint32_t off) { return gstr(rd(GOT_ADDR(off))); }
+static inline uint32_t got_ptr(uint32_t off) { return rd(GOT_ADDR(off)); }
 
 // 원본 그리기를 화면 밖(임시 화면)에서 돌린다. 원본이 그린 글은 ui_cap_text로 남는다.
 #define RUN_HIDDEN(fn, c) do { ui_scratch_begin(); fn(c); ui_scratch_end(); } while (0)

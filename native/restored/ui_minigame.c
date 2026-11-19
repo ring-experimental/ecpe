@@ -33,7 +33,6 @@
 #include <stdio.h>
 
 enum {
-    GOT = 0x14e624,
     S_W = 0x00, S_MODEL = 0x0c, S_STATE = 0x14, S_RET = 0x18, S_PAGE = 0x30, S_SHEET = 0x40, S_GENNAD = 0x48,
     W_MENU = 0x1d4, W_SCENE = 0x0c, W_MINIGAME = 0x1d8, SCENE_SLOT = 15, MENU_SHEET = 0x14, W_SCENE_RET = 0x10, W_PARTY = 0x1c0, PARTY_CASINO = 0xa8,
     M_POS = 0x00, M_PHASE = 0x03, M_COIN = 0x08, M_WIN = 0x0c, M_BET = 0x10,
@@ -45,7 +44,7 @@ enum {
 };
 
 static inline uint32_t rd(uint32_t a) { return R32_(&cpu, a); }
-static inline uint32_t got(uint32_t off) { return rd(GOT + off); }
+static inline uint32_t got(uint32_t off) { return rd(GOT_ADDR(off)); }
 
 static bool slot_state(int s) { return s == ST_BET || s == ST_SPIN || s == ST_RESULT || s == ST_PRIZE; }
 static bool is_slot(uint32_t S) {

@@ -27,9 +27,11 @@
 #include <stdlib.h>
 #include <string.h>
 
+#define G_REGION VG(G_REGION_D5) // 게임 객체 필드: 판마다 다르다(host/ver.h)
+#define G_PLACE VG(G_PLACE_D5) // 게임 객체 필드: 판마다 다르다(host/ver.h)
 enum {
     G_SCENE = 0x0c, G_FLAGS = 0x14, G_FSTATE = 0x18, G_FLAGS2 = 0x20, G_DEST = 0x2d, G_VM = 0x170, G_HERO = 0x1b4, G_E = 0x1c4, G_MENU = 0x1d4,
-    G_REGION = 0x4dc, G_PLACE = 0x4fc, M_CLOSE = 0x60, M_MODE = 0x1c,
+    G_REGION_D5 = 0x4dc, G_PLACE_D5 = 0x4fc, M_CLOSE = 0x60, M_MODE = 0x1c,
     FN_LOADMAP = 0x13c294, FN_LOAD = 0x10d044,
     KEY_UP = 0x1f, KEY_DOWN = 0x1e, KEY_OK = 0x1b, KEY_CLR = 0x10, KEY_2 = 0x52, KEY_8 = 0x58, KEY_5 = 0x55,
     LOCK_TICKS = 10,
@@ -327,7 +329,7 @@ void ext_field_tick(uint32_t G) {
 
 // ---- 조사용(WARP_ASCAN=<"맵,a,b" 목록 파일>): 맵마다 실제로 이동해 액터의 플래그 번호를 적는다 ----
 static void dump_actors(uint32_t G, int m, int a, int b) {
-    fprintf(stderr, "AMAP %d,%d,%d n4dc=%s n4fc=%s\n", m, a, b, gstr(G + 0x4dc), gstr(G + 0x4fc));
+    fprintf(stderr, "AMAP %d,%d,%d n4dc=%s n4fc=%s\n", m, a, b, gstr(G + G_REGION), gstr(G + G_PLACE));
     uint32_t nb = G32(G + 0x340), arr = G32(G + 0x344);
     for (uint32_t i = 0; i < nb && i < 30; i++) {
         uint32_t base = arr + i * 0x44, cnt = G32(base);

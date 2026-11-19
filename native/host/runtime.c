@@ -27,6 +27,9 @@ void (*guest_exec)(cpu_t *, uint32_t);
 
 bool arm_helper(cpu_t *c, uint32_t a) {
     uint32_t *r = c->r;
+    static uint32_t h[3];
+    if (!h[0]) for (int i = 0; i < 3; i++) h[i] = VF(arm_helper_addrs[i]); // 판마다 자리가 다르다(host/ver.h)
+    a = a == h[0] ? 0x140024 : a == h[1] ? 0x1400d8 : a == h[2] ? 0x140210 : 0;
     switch (a) {
     case 0x140024: CK(r[0], r[2]); memset(c->m + r[0], (int)r[1], r[2]); return true;
     case 0x1400d8: CK(r[0], r[2]); CK(r[1], r[2]); memmove(c->m + r[0], c->m + r[1], r[2]); return true;

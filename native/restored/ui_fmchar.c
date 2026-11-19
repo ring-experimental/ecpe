@@ -11,8 +11,6 @@
 #include "fm_shell.h"
 
 enum {
-    GOT = 0x14e624,             // PIC 코드의 sl. 메모리 위의 GOT 값은 이미 게스트 주소다
-    APP_VAR = 0x14ee34,         // 앱 객체 포인터를 가진 전역
     APP_GAME = 0x48,
     GAME_PARTY = 0x1c0, GAME_IDB = 0x1cc, GAME_SDB = 0x1d0, GAME_MENU = 0x1d4,
     MENU_SHEET = 0x14,          // 메뉴 UI 스프라이트(리소스 5)
@@ -48,7 +46,7 @@ static uint32_t party_of(cpu_t *c, uint32_t game) { return R32(game + GAME_PARTY
 static uint32_t member(cpu_t *c, uint32_t game, int i) {
     return (i < 0 || i > 4) ? 0 : R32(party_of(c, game) + PARTY_CHARS + 4 * i);
 }
-static const char *got_str(cpu_t *c, int off) { return gstr(R32(GOT + off)); }
+static const char *got_str(cpu_t *c, int off) { return gstr(R32(GOT_ADDR(off))); }
 static int pct(int v, int max) { return max <= 0 ? 0 : v <= 0 ? 0 : v >= max ? 100 : v * 100 / max; }
 
 // 캐릭터 얼굴. 원본은 24×23 칸에 잘라 보이지만(0x300a0), 여기서는 합성 프레임 전체를 떼어 크게 쓴다.
@@ -200,10 +198,10 @@ void f_3312c(cpu_t *c) {
         CALL(0x12320c, box, game, 0);
         CALL(0x12323c, box, 0, 0, 0x20, 1, R32(scr + ST_NOTE_STYLE));
         CALL(0x123298, box, note, 1);
-        CALL(R32(R32(box) + 4), box);
+        CALLP(R32(R32(box) + 4), box);
         extern int ui_dialog_levelup_call; // ui_dialog.c: 이 호출을 레벨업 알림으로 알아보게 한다
         ui_dialog_levelup_call = 1;
-        CALL(R32(R32(box) + 0xc), box, gfx);
+        CALLP(R32(R32(box) + 0xc), box, gfx);
         ui_dialog_levelup_call = 0;
         CALL(0x1231d0, box);
     }

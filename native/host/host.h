@@ -2,6 +2,7 @@
 // 구조는 크로노스 윙 네이티브 빌드(크로노스 윙 저장소의 native/)와 같다.
 #pragma once
 #include "thumbrt.h"
+#include "ver.h"
 #include <stdbool.h>
 
 #define IMAGE_LOAD 0x100000u

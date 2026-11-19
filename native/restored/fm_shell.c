@@ -25,11 +25,12 @@
 #define G8(a) R8_(&cpu, (a))
 #define FN(x) (0x100000u + (x))
 
+#define GAME_PLACE VG(GAME_PLACE_D5) // 게임 객체 필드: 판마다 다르다(host/ver.h)
 enum {
-    GOT = 0x14e624, GOT_FACE_DX = 0x458, GOT_FACE_DY = 0x45c, GOT_TAB_ICON_X = 0x47c,
-    APP_VAR = 0x14ee34, APP_GAME = 0x48,
+    GOT_FACE_DX = 0x458, GOT_FACE_DY = 0x45c, GOT_TAB_ICON_X = 0x47c,
+    APP_GAME = 0x48,
     GAME_GFX = 0x08, GAME_SCENE = 0x0c, GAME_FLAGS = 0x14, GAME_PLAY_T0 = 0x24, GAME_PLAY_ACC = 0x28, GAME_PARTY = 0x1c0,
-    GAME_MENU = 0x1d4, GAME_CLASS_NAMES = 0x314, GAME_PLACE = 0x4dc, FLAG_PLACE_TABLE = 0x08, SCENE_MENU = 14,
+    GAME_MENU = 0x1d4, GAME_CLASS_NAMES = 0x314, GAME_PLACE_D5 = 0x4dc, FLAG_PLACE_TABLE = 0x08, SCENE_MENU = 14,
     MENU_GAME = 0x00, MENU_SPR = 0x04, MENU_SHEET = 0x14, MENU_SCREEN = 0x18, MENU_MODE = 0x1c, MENU_SCREENS = 0x24, MENU_CLOSE = 0x60,
     MODE_FIELD = 1,
     PARTY_CHARS = 0x84, PARTY_INV = 0xa8, PARTY_MAX = 5,
@@ -388,7 +389,7 @@ static void put_chip_face(const char *key, uint32_t game, uint32_t menu, uint32_
     int id = (int)G8(ch + CH_ID);
     uint32_t frame = CALL(FN(0x12fe8), game, (uint32_t)id, 0);
     int k = frame == 0x43 ? 8 : id;
-    int dx = (int8_t)G8(G32(GOT + GOT_FACE_DX) + (uint32_t)k), dy = (int8_t)G8(G32(GOT + GOT_FACE_DY) + (uint32_t)k);
+    int dx = (int8_t)G8(G32(GOT_ADDR(GOT_FACE_DX)) + (uint32_t)k), dy = (int8_t)G8(G32(GOT_ADDR(GOT_FACE_DY)) + (uint32_t)k);
     uint32_t gfx = G32(game + GAME_GFX);
     int x, y;
     cell(24, 23, &x, &y);
@@ -431,7 +432,7 @@ void fm_shell_emit(uint32_t menu) {
         int x, y;
         cell(16, 16, &x, &y);
         CALL(FN(0x60dc), menu + MENU_SPR, (uint32_t)x, (uint32_t)y, 0, 0,
-             guest_rect((int)G32(G32(GOT + GOT_TAB_ICON_X) + 4u * (uint32_t)i), 0, 11, 13));
+             guest_rect((int)G32(G32(GOT_ADDR(GOT_TAB_ICON_X)) + 4u * (uint32_t)i), 0, 11, 13));
         ui_sprite_trim("icon", x, y, 16, 16);
         ui_close();
     }

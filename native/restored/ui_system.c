@@ -16,9 +16,8 @@
 #include <string.h>
 #include <time.h>
 
+#define G_HELP_PAGE VG(G_HELP_PAGE_D5) // 게임 객체 필드: 판마다 다르다(host/ver.h)
 enum {
-    GOT = 0x14e624, APP_VAR = 0x14ee34,
-    // GOT 칸(실행 중에는 게스트 주소로 고쳐져 있다)
     G_HELP = 0x218, G_HELP_T = 0x4f8, G_LIST = 0x4fc, G_QUIT_Q = 0x500, G_SL_T = 0x504, G_LOAD = 0x508, G_TOTAL = 0x50c,
     G_SAVE_Q = 0x514, G_LOAD_Q = 0x518, G_SAVING = 0x51c, G_SAVED = 0x520, G_INIT_FAIL = 0x524, G_NO_SPACE = 0x528,
     G_BAD_VER = 0x52c, G_EMPTY = 0x530, G_CFG_T = 0x534, G_SPEED = 0x53c, G_CFG_NAMES = 0x540, G_CFG_VALS = 0x544,
@@ -28,12 +27,12 @@ enum {
     // 메뉴 객체
     M_GAME = 0x00, M_MODE = 0x1c, M_CLOSE = 0x60, M_X = 0x64, M_Y = 0x68, M_W = 0x78,
     // 게임 객체
-    G_FLAGS = 0x20, G_START = 0x24, G_PLAYED = 0x150, G_SLOTS = 0x334, G_HELP_PAGE = 0x53c,
+    G_FLAGS = 0x20, G_START = 0x24, G_PLAYED = 0x150, G_SLOTS = 0x334, G_HELP_PAGE_D5 = 0x53c,
     FN_NOW = 0x103234, // 현재 시각(ms)
     HELP_LINES = 6,    // 쪽마다 줄 수(0x34f48이 0x10258에 넘기는 값)
 };
 
-#define G(off) R32_(&cpu, GOT + (off))
+#define G(off) R32_(&cpu, GOT_ADDR((off)))
 static const char *gs(uint32_t off) { return gstr(G(off)); }
 
 static void hms(const char *key, uint32_t ms) {

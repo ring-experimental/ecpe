@@ -1580,7 +1580,7 @@ int mouse_button(int b) { return b == SDL_BUTTON_LEFT ? 0 : b == SDL_BUTTON_RIGH
 enum { SCENE_SCRIPT = 10 };
 int game_scene() {
     cpu_t *c = &cpu;
-    uint32_t app = R32_(c, 0x14ee34);
+    uint32_t app = R32_(c, VD(0x14ee34));
     if (app < GUEST_LOW || app >= GUEST_MEM - 0x60) return -1;
     uint32_t g = R32_(c, app + 0x48);
     if (g < GUEST_LOW || g >= GUEST_MEM - 0x40) return -1;
@@ -1590,7 +1590,7 @@ int game_scene() {
 // 지금 필드에서 비행정을 타고 있다(이착륙 0번 키). 조건은 원본 HUD 0x12b18과 같다(work/ui/survey/field.md 2절).
 bool on_airship() {
     cpu_t *c = &cpu;
-    uint32_t app = R32_(c, 0x14ee34);
+    uint32_t app = R32_(c, VD(0x14ee34));
     if (app < GUEST_LOW || app >= GUEST_MEM - 0x60) return false;
     uint32_t g = R32_(c, app + 0x48);
     if (g < GUEST_LOW || g >= GUEST_MEM - 0x40) return false;

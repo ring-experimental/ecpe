@@ -8,10 +8,13 @@ ROOT := $(abspath ..)
 # 파이썬 도구(capstone)는 uv가 uv.lock대로 맞춘 환경에서 돌린다.
 PY ?= uv run --project $(ROOT) python
 JAR ?= $(ROOT)/origin/010100D5.jar
-B := build
+# 판마다 빌드 폴더를 나누려면 make B=build-d2 JAR=<다른 판>.
+B ?= build
 GAME := $(B)/game
 HOSTSRC := $(wildcard host/*.c)
-HOSTOBJ := $(HOSTSRC:host/%.c=$(B)/%.o) $(patsubst host/%.cpp,$(B)/%.o,$(wildcard host/*.cpp))
+HOSTOBJ := $(HOSTSRC:host/%.c=$(B)/%.o) $(patsubst host/%.cpp,$(B)/%.o,$(wildcard host/*.cpp)) $(B)/ver_tables.o
+# 판 대응표(native/ver/<AID>.map): 기준 판(010100D5)이 아닌 원본을 돌릴 때 주소를 바꾼다(host/ver.h).
+VERMAPS := $(wildcard ver/*.map)
 # RmlUi와 FreeType(정적). deps.sh mac이 build/deps/mac에 빌드한다.
 RML ?= $(B)/deps/mac/install
 # 사람이 읽는 C로 옮긴 함수(restored/list.txt). 번역 코드에서는 빠지거나 orig_f_로 남는다.
@@ -43,22 +46,31 @@ CARGO_OFFLINE ?=
 .PHONY: all clean trace
 all: $(B)/ecpe $(GAME)/client.bin $(B)/font.gly $(B)/1mgm.sf2 $(B)/ui/.stamp
 
+# JAR는 jar 또는 jar를 담은 원본 zip. 판(010100D5, 010100D2)은 실행 이미지의 SHA-256으로 가린다(work/tools/verpick.py).
 $(GAME)/client.bin: $(JAR)
 	@[ -f "$(JAR)" ] || { echo "원본 jar 경로를 준다: make JAR=<010100D5.jar 경로>" >&2; exit 1; }
 	mkdir -p $(GAME)
-	unzip -qo "$(JAR)" -d $(GAME)
-	cp $(GAME)/client.bin1236 $(GAME)/client.bin
+	case "$(JAR)" in *.zip|*.ZIP) unzip -p "$(JAR)" '*.jar' > $(B)/orig.jar && unzip -qo $(B)/orig.jar -d $(GAME) ;; *) unzip -qo "$(JAR)" -d $(GAME) ;; esac
+	cp $$(ls $(GAME)/client.bin[0-9]* | head -1) $(GAME)/client.bin
+	python3 $(ROOT)/work/tools/verpick.py $(GAME)/client.bin text >/dev/null
 
 $(B)/codemap.json: $(GAME)/client.bin $(ROOT)/work/tools/codemap.py
-	$(PY) $(ROOT)/work/tools/codemap.py $(GAME)/client.bin $@ > $(B)/codemap.txt
+	$(PY) $(ROOT)/work/tools/codemap.py $(GAME)/client.bin $@ $$(python3 $(ROOT)/work/tools/verpick.py $(GAME)/client.bin text) > $(B)/codemap.txt
 
 # 옮긴 함수 목록: restored/list.txt와 restored/list.d/*.txt(UI 영역마다 하나)를 합친다.
 $(B)/list.txt: restored/list.txt $(LISTD)
 	mkdir -p $(B)
 	cat $^ > $@
 
-$(B)/tr.c: $(B)/codemap.json $(ROOT)/work/tools/thumb2c.py $(B)/list.txt
-	$(PY) $(ROOT)/work/tools/thumb2c.py $(GAME)/client.bin $< $@ $(B)/list.txt
+$(B)/tr.c: $(B)/codemap.json $(ROOT)/work/tools/thumb2c.py $(B)/list.txt $(VERMAPS)
+	$(PY) $(ROOT)/work/tools/thumb2c.py $(GAME)/client.bin $< $@ $(B)/list.txt $$(python3 $(ROOT)/work/tools/verpick.py $(GAME)/client.bin map)
+
+$(B)/ver_tables.c: $(VERMAPS) $(ROOT)/work/tools/vergen.py
+	mkdir -p $(B)
+	python3 $(ROOT)/work/tools/vergen.py $@ $(VERMAPS)
+
+$(B)/ver_tables.o: $(B)/ver_tables.c host/ver.h
+	cc $(CFLAGS) -c $< -o $@
 
 $(B)/tr.o: $(B)/tr.c host/thumbrt.h
 	cc -O1 -w -std=gnu11 -Ihost $(TRFLAGS) -c $< -o $@
@@ -119,7 +131,7 @@ $(B)/ecpe-interp: $(B)/interp.o $(B)/interp_gen.o $(HOSTOBJ) $(RESTOBJ) $(SMAFEV
 # 리마스터 일러스트(원본 파생물)는 넣지 않는다. 결과는 build/web 폴더 통째로 올린다. 서비스 워커는 https나 localhost에서만 돈다.
 WEB := $(B)/web
 WEBDEP := $(B)/deps/web/install
-WEBOBJ := $(HOSTSRC:host/%.c=$(B)/web-obj/%.o) $(patsubst host/%.cpp,$(B)/web-obj/%.o,$(wildcard host/*.cpp)) $(RESTSRC:restored/%.c=$(B)/web-obj/r_%.o) $(B)/web-obj/interp.o $(B)/web-obj/interp_gen.o
+WEBOBJ := $(HOSTSRC:host/%.c=$(B)/web-obj/%.o) $(patsubst host/%.cpp,$(B)/web-obj/%.o,$(wildcard host/*.cpp)) $(RESTSRC:restored/%.c=$(B)/web-obj/r_%.o) $(B)/web-obj/interp.o $(B)/web-obj/interp_gen.o $(B)/web-obj/ver_tables.o
 WEBCFLAGS := -O2 -w -std=gnu11 -Ihost -I$(WEBDEP)/include
 WEBSTATIC := index.html app.js gamedata.js manifest.webmanifest icon.svg icon-192.png icon-512.png
 SMAFWASM := $(B)/smafev/wasm32-unknown-unknown/release/smafev.wasm
@@ -168,6 +180,10 @@ $(B)/web-obj/interp.o: interp/interp.c host/host.h host/thumbrt.h | $(WEBDEP)/li
 $(B)/web-obj/interp_gen.o: $(B)/interp_gen.c host/host.h host/thumbrt.h | $(WEBDEP)/lib/librmlui.a
 	mkdir -p $(B)/web-obj
 	emcc $(WEBCFLAGS) -c $< -o $@
+
+$(B)/web-obj/ver_tables.o: $(B)/ver_tables.c host/ver.h | $(WEBDEP)/lib/librmlui.a
+	mkdir -p $(B)/web-obj
+	emcc $(WEBCFLAGS) -c $< -o $@
 .PHONY: web
 
 # 진단용: 함수 드나듦을 기록하는 빌드. ctrl 파일의 `calltree <파일>`로 한 프레임의 호출 나무를 남긴다.
@@ -198,7 +214,7 @@ WSMAFEV := $(B)/smafev/x86_64-pc-windows-gnu/release/libsmafev.a
 WMAP := -ffile-prefix-map=$(HOME)/=
 WRUSTFLAGS := --remap-path-prefix=$(HOME)/.cargo/registry/src/=crates/ --remap-path-prefix=$(HOME)/=
 WCFLAGS := -O2 -w -std=gnu11 $(WMAP) -D__USE_MINGW_ANSI_STDIO=1 -Ihost -I$(WSDL)/include
-WOBJ := $(patsubst host/%.c,$(WOBJD)/%.o,$(wildcard host/*.c)) $(patsubst host/%.cpp,$(WOBJD)/%.o,$(wildcard host/*.cpp)) $(RESTSRC:restored/%.c=$(WOBJD)/r_%.o)
+WOBJ := $(patsubst host/%.c,$(WOBJD)/%.o,$(wildcard host/*.c)) $(patsubst host/%.cpp,$(WOBJD)/%.o,$(wildcard host/*.cpp)) $(RESTSRC:restored/%.c=$(WOBJD)/r_%.o) $(WOBJD)/ver_tables.o
 
 $(WRML)/lib/librmlui.a:
 	./deps.sh win
@@ -226,6 +242,10 @@ $(WOBJD)/%.o: host/%.c host/host.h host/thumbrt.h host/ui.h
 $(WOBJD)/%.o: host/%.cpp host/ui.h host/ui_render.h host/host.h
 	mkdir -p $(WOBJD)
 	$(WCXX) -O2 -std=c++17 $(WMAP) -DRMLUI_STATIC_LIB -Ihost -I$(WSDL)/include -I$(WRML)/include -c $< -o $@
+
+$(WOBJD)/ver_tables.o: $(B)/ver_tables.c host/ver.h
+	mkdir -p $(WOBJD)
+	$(WCC) $(WCFLAGS) -c $< -o $@
 
 $(WOBJD)/r_%.o: restored/%.c restored/restored.h host/host.h host/thumbrt.h host/ui.h
 	mkdir -p $(WOBJD)

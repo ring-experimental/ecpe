@@ -4,6 +4,7 @@
 interpgen.py <restored/list.txt> <out.c> <소스...>
 - 교체 표: list.txt(ECPE는 list.d를 합친 build/list.txt)의 함수 주소 → restored/의 f_<오프셋>.
 - 읽는 C가 이름으로 부르는 원본 함수(f_<오프셋>, orig_f_<오프셋>)는 인터프리터로 넘기는 한 줄 함수로 만든다.
+- 이름과 표의 주소는 기준 판(010100D5) 것이고, 실행할 때 VF(host/ver.h)가 지금 판의 자리로 바꾼다.
 """
 import re, sys
 
@@ -22,9 +23,9 @@ with open(sys.argv[2], 'w') as w:
     for n in sorted(names):
         off = int(n.split('_')[-1], 16)
         if n.startswith('orig_'):
-            w.write(f'void {n}(cpu_t*c){{interp_call(c,{off + LOAD | 1}u,true);}}\n')
+            w.write(f'void {n}(cpu_t*c){{interp_call(c,VF({off + LOAD | 1}u),true);}}\n')
         elif off not in hooks:
-            w.write(f'void {n}(cpu_t*c){{interp_call(c,{off + LOAD | 1}u,false);}}\n')
+            w.write(f'void {n}(cpu_t*c){{interp_call(c,VF({off + LOAD | 1}u),false);}}\n')
     w.write('const fn_entry_t interp_hooks[]={\n' + ''.join(f'{{{h + LOAD}u,f_{h:x}}},\n' for h in hooks) + '{0,0}};\n')
     w.write('const fn_entry_t fn_table[]={{0,0}};\n')
     w.write('__attribute__((constructor)) static void interp_install(void){guest_exec=interp_exec;}\n')

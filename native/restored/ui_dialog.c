@@ -28,16 +28,17 @@ int font_string_width(const uint8_t *s, int len);
 #define G8(a) R8_(&cpu, (a))
 #define FN(x) (0x100000u + (x))
 
+#define GAME_HAND VG(GAME_HAND_D5) // 게임 객체 필드: 판마다 다르다(host/ver.h)
+#define GAME_PLACE VG(GAME_PLACE_D5) // 게임 객체 필드: 판마다 다르다(host/ver.h)
 enum {
-    APP_PTR = 0x14ee34,         // 앱 객체 포인터(BSS)
     APP_GAME = 0x48,
     // 게임(월드) 객체 G
     GAME_GFX = 0x08, GAME_SCENE = 0x0c, GAME_FLAGS = 0x14, GAME_FSTATE = 0x18, GAME_FLAGS2 = 0x20,
     GAME_TYPING = 0x14c,        // 0x10이면 타자 효과 없이 쪽째로 보인다(환경설정)
     GAME_LINEGAP = 0x160,       // 대사 줄 간격 보정(0이 아니면 +2px)
     GAME_FIELD = 0x184, GAME_MENU = 0x1d4, GAME_DIALOG = 0x34c, GAME_NOTICE = 0x3e4,
-    GAME_HAND = 0x4c0,          // 손 커서 스프라이트 슬롯(선택창 0x60dc 프레임 0x21)
-    GAME_PLACE = 0x4fc,         // 지역 이름(지역 이름 띠 0xd600)
+    GAME_HAND_D5 = 0x4c0,          // 손 커서 스프라이트 슬롯(선택창 0x60dc 프레임 0x21)
+    GAME_PLACE_D5 = 0x4fc,         // 지역 이름(지역 이름 띠 0xd600)
     GAME_BLINK = 0x49c,         // 미니맵 주인공 점 깜빡임 카운터
     MENU_SHEET = 0x14,          // UI 스프라이트 시트(초상화 프레임도 여기 있다)
     FIELD_CAM_X = 0x18,
@@ -77,7 +78,7 @@ enum {
 // 대사 글 칸의 폭(dp = 게임 px). 원본 줄바꿈 폭도 이것이다.
 enum { TEXT_MAX = 400, NARROW_W = 400, FACE_COL = 128, FACE_COL_MAX = 216 };
 
-static uint32_t game_obj(void) { return G32(G32(APP_PTR) + APP_GAME); }
+static uint32_t game_obj(void) { return G32(G32(APP_ADDR) + APP_GAME); }
 
 // 레지스터를 통째로 보관/복원한다(guest_call은 SP와 LR만 되돌린다).
 typedef struct { uint32_t r[16]; } regs_t;
@@ -407,7 +408,7 @@ void f_37894(cpu_t *c) {
 // ==================================================================================================
 static bool lr_in(uint32_t lr, uint32_t lo, uint32_t hi) {
     lr &= ~1u;
-    return lr >= FN(lo) && lr < FN(hi);
+    return lr >= VF(FN(lo)) && lr < VFEND(FN(hi)); // 범위는 기준 판 함수 시작과 끝(host/ver.h)
 }
 
 // 스테이터스 화면(ui_fmchar.c)은 레벨업 알림 상자를 호스트 쪽에서 직접 부른다. 그때는 LR이 0x3312c 안이 아니므로 이 값으로 알린다.
@@ -437,7 +438,7 @@ void f_23578(cpu_t *c) {
         static char cnt[4][64];
         static int ncnt;
         static uint32_t cnt_frame;
-        uint32_t frame = G32(G32(APP_PTR) + 0x58);
+        uint32_t frame = G32(G32(APP_ADDR) + 0x58);
         if (frame != cnt_frame) { cnt_frame = frame; ncnt = 0; }
         for (int i = 0; i < n && ncnt < 4; i++) snprintf(cnt[ncnt++], sizeof cnt[0], "%s", caps[i].s);
         ui_begin(doc);
@@ -604,7 +605,7 @@ void f_36d74(cpu_t *c) {
     int n = caps_sorted(caps, 4);
     ui_scratch_end();
 
-    uint32_t frame = G32(G32(APP_PTR) + 0x58);
+    uint32_t frame = G32(G32(APP_ADDR) + 0x58);
     if (frame != balloon_frame) { balloon_frame = frame; nballoon = 0; }
     if (n && nballoon < 8) {
         balloon_t *b = &balloons[nballoon++];

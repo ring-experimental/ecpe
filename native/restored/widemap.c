@@ -13,9 +13,10 @@
 #include "restored.h"
 #include <string.h>
 
+#define GAME_VIEW VG(GAME_VIEW_D5) // 게임 객체 필드: 판마다 다르다(host/ver.h)
 enum {
     FIELD_GAME = 0x00, FIELD_CAM_X = 0x18, FIELD_MAP_W = 0x78,
-    GAME_STATE = 0x18, GAME_MAP = 0x2d, GAME_VIEW = 0x568, // 보기 사각형(x, y, w, h)
+    GAME_STATE = 0x18, GAME_MAP = 0x2d, GAME_VIEW_D5 = 0x568, // 보기 사각형(x, y, w, h)
     STATE_BACKDROP = 5,
     GC_COUNT = 0x18, // 0x2ee2c가 부를 때마다 올리는 값
     MAP_FIREWORKS = 88,
