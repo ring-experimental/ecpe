@@ -1,0 +1,78 @@
+/* 필드 메뉴(영역 fmcore: 메인·아이템·장비)가 같이 쓰는 배치. 공통 부품은 base.rcss에 있다.
+   세 화면 모두 "왼쪽 목록 + 오른쪽 상세" 두 단에 아래 키 안내 띠를 둔다. 폭이 좁으면(narrow, 400dp 미만) 단 사이를 줄이고 일부 창을 접는다. */
+
+/* 두 단 */
+.cols { display: flex; flex-direction: row; flex: 1 1 0; min-height: 0; }
+.side { display: flex; flex-direction: column; margin-left: 8dp; flex: 1 1 0; min-width: 0; }
+body.narrow .screen { padding: 6dp 6dp; }
+body.narrow .side { margin-left: 4dp; }
+
+/* 키 안내 띠: 원작의 아래 안내줄(0x302b4)과 같은 자리. 키 쌍을 가로로 늘어놓는다 */
+.keybar { flex: 0 0 auto; margin-top: 6dp; padding: 3dp 8dp; white-space: nowrap; overflow: hidden; }
+body.narrow .keybar { margin-top: 4dp; padding: 3dp 4dp; }
+body.narrow .keybar .pair { margin-right: 6dp; }
+.keybar .key { margin: 0 3dp 0 0; }
+.keybar .pair { margin-right: 10dp; }
+
+/* 캐릭터 한 줄(초상 40x40 + 이름/레벨 + HP·MP 게이지) */
+.char { flex: 0 0 auto; display: flex; flex-direction: row; align-items: center; height: 44dp; padding: 0 4dp; box-sizing: border-box;
+        border: 1dp #00000000; border-radius: 3dp; background-color: #10143270; margin-bottom: 2dp; }
+.char.sel { decorator: horizontal-gradient(#3f78f0c0 #2a4ab8c0); border-color: #a8c4ff; }
+.char.sel.down { decorator: none; background-color: #50505090; border-color: #a0a0a0; }
+.char .face { flex: 0 0 40dp; width: 40dp; height: 40dp; margin-right: 6dp; position: relative; }
+/* 전투불능 표시: 초상 아래에 겹친다(이름 칸을 줄이지 않게) */
+.downtag { position: absolute; left: 0; bottom: 0; width: 100%; text-align: center; font-size: 10dp; line-height: 11dp; background-color: #8a1020d0; color: #ffd0d0; }
+.char.down .face img { opacity: 0.55; }
+.char .info { flex: 1 1 0; min-width: 0; display: flex; flex-direction: column; }
+.char .line { display: flex; flex-direction: row; align-items: center; height: 13dp; }
+.char .nm { flex: 1 1 0; min-width: 0; overflow: hidden; white-space: nowrap; }
+.char .lvl { flex: 0 0 auto; margin-left: 6dp; }
+.char .stat { display: flex; flex-direction: row; align-items: center; height: 13dp; }
+.char .stat .label { flex: 0 0 18dp; font-size: 10dp; }
+.char .stat .gauge { flex: 1 1 0; min-width: 16dp; }
+.char .stat .v { flex: 0 0 52dp; text-align: right; margin-left: 4dp; font-size: 10dp; white-space: nowrap; }
+.hpv { color: #ffe054; }
+.mpv { color: #abfcff; }
+.char.down .nm { color: #9aa0c0; }
+.tag { font-size: 10dp; line-height: 12dp; padding: 0 3dp; border-radius: 2dp; margin-left: 4dp; white-space: nowrap; }
+.tag.bad { background-color: #6a1c26; color: #ffb0b0; }
+.tag.info { background-color: #2a3470; color: #cfd3ff; }
+
+/* 메시지 띠(원작 0x30cac의 진홍 띠): 화면 가운데 위에 띄운다 */
+.toast-wrap { position: absolute; left: 0; top: 0; width: 100%; height: 100%; display: flex; justify-content: center; align-items: center; }
+.toast { padding: 5dp 18dp; background-color: #b1002ae8; border: 1dp #ff9a9a; border-radius: 3dp; color: #fff; font-effect: outline(1dp #3a0010);
+         white-space: nowrap; }
+body.open .toast { animation: 0.14s cubic-out pop-in; }
+
+/* 아이콘 칸(떼어 낸 11~16px 그림을 가운데에) */
+.ic { display: inline-block; width: 18dp; height: 16dp; text-align: center; margin-right: 4dp; }
+.row .ic { flex: 0 0 18dp; }
+.count { flex: 0 0 auto; margin-left: 6dp; color: #cfd3ff; font-size: 10dp; }
+.row.sel .count { color: #fff; }
+
+/* 강조된 창(지금 입력을 받는 창): 금색 테두리 */
+.panel.focus { border-color: #f2c84a; }
+.empty { color: #8c94c4; padding: 4dp 4dp; }
+
+/* 목록 길이를 고정하려고 채운 빈 칸(C의 pad_list) */
+.off, .row.off, .char.off { display: none; }
+
+/* 좁은 화면(narrow): 캐릭터 줄은 게이지 대신 수치만 보이고 레벨은 초상 위에 겹친다. 방향키 안내는 접는다(원작 안내줄에도 없던 것) */
+.lvtag { display: none; position: absolute; left: 0; top: 0; padding: 0 2dp; font-size: 10dp; line-height: 11dp; background-color: #0a0e28c0; color: #fff; }
+body.narrow .lvtag { display: block; }
+body.narrow .char .lvl { display: none; }
+body.narrow .char .stat .gauge { display: none; }
+body.narrow .char .stat .v { flex: 1 1 0; }
+body.narrow .keybar .pair.nav { display: none; }
+
+/* 창 제목 띠는 내용이 많아도 줄지 않게 한다 */
+.panel .title { flex-shrink: 0; }
+
+/* 세로 목록: 다 그린 줄을 scroll 상자로 넘긴다(▲▼ 대신 가는 스크롤바) */
+.list { overflow-y: auto; }
+.list scrollbarvertical { width: 3dp; margin-left: 2dp; }
+.list scrollbarvertical slidertrack { background-color: #ffffff10; }
+.list scrollbarvertical sliderbar { background-color: #8c94c4a0; border-radius: 2dp; min-height: 12dp; }
+
+/* 눌러서 닫는 메시지 막: 누르는 동안 화면 전체가 누름 색으로 번쩍이지 않게 */
+.toast-wrap.press { background-color: transparent; }

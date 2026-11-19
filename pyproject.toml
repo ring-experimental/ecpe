@@ -1,0 +1,13 @@
+# 빌드와 분석에 쓰는 파이썬 도구(work/tools, native/android, work/illust)의 의존성. 판은 uv.lock에 고정한다.
+# 빌드가 쓰는 것: capstone(codemap.py, thumb2c.py), pillow(아이콘, 일러스트 맞춤, sheet.py).
+[project]
+name = "ecpe-tools"
+version = "0"
+requires-python = ">=3.12"
+dependencies = [
+    "capstone>=5,<6",
+    "pillow>=11",
+]
+
+[tool.uv]
+package = false

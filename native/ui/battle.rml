@@ -1,0 +1,82 @@
+<rml><head><link type="text/rcss" href="base.rcss"/><link type="text/rcss" href="battle.rcss"/>
+<!-- 전투 아래 HUD. 원작 아래 띠(높이 48)를 그대로 쓰고, 명령 메뉴·목록·적 정보는 띠 위에 얹는다.
+     원작은 명령/하위메뉴/목록/적 정보가 상태 패널 자리를 차지해 파티 수치가 가려졌지만, 여기서는 카드가 늘 보인다. -->
+</head>
+<body data-model="battle"><div id="root" data-class-narrow="d.narrow" data-class-defeat="d.defeat">
+<!-- 아래 띠: 왼쪽 칸(명령 메뉴 자리) + 파티 카드 -->
+<div id="band">
+  <div id="lead" class="col-flex">
+    <span class="mode small" data-if="!d.cmd">{{d.turn ? '턴' : '액티브'}}</span>
+  </div>
+  <div id="cards" class="grow">
+    <div class="card" data-for="m : d.members" data-class-off="!m.v" data-class-act="m.act" data-class-ko="m.ko" data-class-tgt="m.tgt">
+      <div class="l1"><span class="nm">{{m.name}}</span><span class="tag ko" data-if="m.ko">전투불능</span><span class="tag tg" data-if="m.tgt">대상</span><span class="tag rd" data-if="m.act &amp;&amp; !m.ko">명령</span></div>
+      <div class="gl"><span class="lb">HP</span><span class="v hpv" data-class-low="m.low">{{m.hp}}<span class="mx">/{{m.hpmax}}</span></span><div class="gauge hp grow"><div class="fill" data-style-width="m.hp_pct + '%'"></div></div></div>
+      <div class="gl"><span class="lb">MP</span><span class="v mpv">{{m.mp}}<span class="mx">/{{m.mpmax}}</span></span><div class="gauge mp grow"><div class="fill" data-style-width="m.mp_pct + '%'"></div></div></div>
+      <div class="gl g2">
+        <span class="lb" data-if="!d.turn">ATB</span><div class="gauge atb grow" data-if="!d.turn" data-class-full="m.atb_full"><div class="fill" data-style-width="m.atb_pct + '%'"></div></div>
+        <span class="lb mgl" data-class-full="m.mg_full">MG</span><div class="gauge mg grow" data-class-full="m.mg_full"><div class="fill" data-style-width="m.mg_pct + '%'"></div></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- 명령 메뉴: 원작은 5개 가운데 3줄만 스크롤해 보였다. 다 보이게 띠 위로 늘인다. 줄을 누르면 그 줄로 가서 바로 실행.
+     숫자 키 바로가기(*, 0)는 오른쪽 안내에 버튼으로 있다(터치에서는 .ck 글자를 감춘다). -->
+<div id="cmd" class="panel pop" data-if="d.cmd">
+  <div class="ci" nav="cmd" idx="0" data-class-sel="d.cur == 0"><span class="cn">Attack</span></div>
+  <div class="ci" nav="cmd" idx="1" data-class-sel="d.cur == 1"><span class="cn">Item</span><span class="ck">{{'star' | key}}</span></div>
+  <div class="ci" nav="cmd" idx="2" data-class-sel="d.cur == 2" data-class-dis="!d.combi_ok"><span class="cn">Combi</span><span class="ck">{{'0' | key}}</span></div>
+  <div class="ci" nav="cmd" idx="3" data-class-sel="d.cur == 3"><span class="cn">Guard</span></div>
+  <div class="ci" nav="cmd" idx="4" data-class-sel="d.cur == 4"><span class="cn">Flee</span></div>
+</div>
+
+<!-- 공격 하위메뉴: 원작 배치 그대로 2열(기본 스킬 / 필살). 원작 키는 좌우 ±1, 위아래 ±2. 닫기(CLR)는 아래 줄 -->
+<div id="sub" class="panel pop" data-if="d.sub">
+  <div class="sr"><div class="ci" nav="sub" idx="0" data-class-sel="d.subcur == 0"><span class="cn">기본</span></div><div class="ci" nav="sub" idx="1" data-class-sel="d.subcur == 1" data-class-dis="d.sub_skill_dis"><span class="cn">스킬</span></div></div>
+  <div class="sr"><div class="ci" nav="sub" idx="2" data-class-sel="d.subcur == 2" data-class-dis="d.sub_sp_dis"><span class="cn">필살</span><span class="ck">MG</span></div></div>
+  <div class="keys sk"><span class="kb" key="clear"><span class="key">{{'clear' | key}}</span>닫기</span></div>
+</div>
+
+<!-- 아이템·조합·스킬·필살 목록 + 설명. 줄과 분류 탭을 직접 누른다. 전부 그리고 상자가 넘긴다(끌기·휠·오른쪽 스틱, 키로 옮기면 그 줄이 보이게). ▲▼ 대신 스크롤바 -->
+<div id="list" class="panel pop col-flex" data-if="d.list > 0" data-class-items="d.list == 1">
+  <div class="title">{{d.title}}<span class="sub keys"><span class="nav" data-if="d.list == 1">↑↓ 분류  ←→ 선택  </span><span class="nav" data-if="d.list != 1">↑↓ 선택  </span><span class="kb" key="clear"><span class="key">{{'clear' | key}}</span>닫기</span></span></div>
+  <div class="row-flex grow">
+    <div id="tabs" data-if="d.list == 1">
+      <div class="tb" nav="tabs" data-attr-idx="t.t" data-for="t : d.tabs" data-class-off="!t.v" data-class-sel="t.sel" data-class-dis="!t.has"><span>{{t.name}}</span></div>
+    </div>
+    <div id="rbox" class="grow col-flex">
+      <div class="empty" data-if="d.empty != ''"><span>{{d.empty}}</span></div>
+      <vlist id="rows" class="grow" scroll="blist" for="r : d.rows" nav="rows" idx="r.i" off="!r.v" sel="r.sel" dis="r.dis"
+             icon="r.icon" label="r.name" value="r.n >= 0 ? '×' + r.n : (r.cost >= 0 ? 'MP ' + r.cost : '')"/>
+    </div>
+    <div id="desc" data-if="d.dname != ''">
+      <div class="dn">{{d.dname}}</div>
+      <div class="dm small"><span data-if="d.dcount > 0">보유 {{d.dcount}}개</span><span data-if="d.dcost >= 0">소비 MP {{d.dcost}}</span></div>
+      <div class="dt small">{{d.desc}}</div>
+    </div>
+  </div>
+</div>
+
+<!-- 적 정보('1' 키, 능력이 있을 때) -->
+<div id="epw" data-if="d.ep" data-class-up="d.cmd &amp;&amp; !d.sub &amp;&amp; !d.targeting"><div id="ep" class="panel pop">
+  <div class="title">적 정보</div>
+  <div class="er" data-for="e : d.enemies" data-class-off="!e.v">
+    <span class="lt">{{e.letter}}</span><span class="en">{{e.name}}</span>
+    <div class="bars"><div class="bar" data-for="b : e.res" data-class-off="!b.v"><div class="bf" data-style-height="b.h + '%'" data-style-background-color="b.c"></div></div></div>
+    <span class="lb">HP</span><span class="ehp">{{e.hp}}</span>
+  </div>
+</div></div>
+
+<!-- 대상 이름(적을 고르는 중) -->
+
+<!-- 숫자 키(원작에는 없던 안내. 키 처리 0x1e594가 받는 키만): 아이템(*) 콤비(0) 적 정보(1, 능력이 있을 때) 단축 스킬(3/6/9, 등록된 것만 그 이름).
+     터치에서는 이 줄이 버튼이 된다. 7(적 이름표)은 원작처럼 안내 없이 키로만 쓴다(원본이 이름표를 그린다). -->
+<div id="hints" class="keys" data-if="d.cmd &amp;&amp; !d.sub &amp;&amp; !d.targeting">
+  <span class="kb k0 ntouch"><span class="key">{{'ok' | key}}</span>결정</span><span class="kb" key="star"><span class="key">{{'star' | key}}</span>아이템</span><span class="kb" key="0"><span class="key">{{'0' | key}}</span>콤비</span><span class="kb" key="1" data-if="d.ep_key"><span class="key">{{'1' | key}}</span>적 정보</span><span class="kb" data-for="q : d.quick" data-attr-key="q.key" data-class-off="!q.v"><span class="key">{{q.key | key}}</span>{{q.name}}</span>
+</div>
+<!-- 대상 고르기(원본이 머리 위 화살표를 그린다): 방향·결정·취소 안내(키보드·게임패드. 터치는 화면 패드가 그 버튼이다) -->
+<div id="hints" class="keys ntouch" data-if="d.targeting">
+  <span class="kb k0"><span class="key">↑↓←→</span>대상</span><span class="kb"><span class="key">{{'ok' | key}}</span>결정</span><span class="kb"><span class="key">{{'clear' | key}}</span>취소</span>
+</div>
+</div></body></rml>

@@ -1,0 +1,52 @@
+<rml><head><link type="text/rcss" href="base.rcss"/><link type="text/rcss" href="dialog.rcss"/>
+<!-- 스크립트 대사창(0x37388). 원본 띠(화면 폭 전체, 2줄)를 읽기 좋은 폭의 아래쪽 판으로 바꾼다.
+     넓은 화면: 판 한쪽에 초상화 칸(2배), 글 칸 폭 d.tw(원본이 이 폭으로 줄을 나눈다). 좁은 화면: 초상화를 판 위에 원작처럼 얹는다.
+     글은 타자 효과로 드러난 만큼만 온다(원본이 그린 글). 이름표는 글 칸 위, 다음 쪽 ▼ / 끝 ■ 표시는 오른쪽 아래. -->
+<!-- 터치: 화면 아무 데나 누르면 OK(원본 0x37630은 OK만 받는다: 타자 효과 건너뛰기, 쪽 넘김, 닫기). -->
+<style>
+#box { position: relative; }
+#panel { position: relative; min-height: 50dp; }
+#panel.wide.fl { padding-left: 0; }
+#text { position: relative; min-height: 32dp; }
+#face-wide { position: absolute; bottom: 2dp; }
+#face-narrow { position: absolute; }
+#play { position: absolute; right: 8dp; top: 8dp; display: flex; flex-direction: row; }
+#play .pb { margin-left: 4dp; padding: 0 6dp; height: 16dp; line-height: 16dp; font-size: 10dp; color: #9aa2d8; background-color: #10143290; border: 1dp #4a5296; border-radius: 3dp; }
+#play .pb.on { color: #fff; background-color: #3f78f0; border-color: #ffffce; }
+#play .pk { margin-right: 3dp; color: #ffd75e; }
+#play .pb.off { opacity: 0.35; }
+body.touch #play .pb { height: 22dp; line-height: 22dp; padding: 0 10dp; font-size: 12dp; }
+body.touch #play .pk { display: none; }
+</style></head>
+<body data-model="dialog">
+<div class="tapall" key="ok"></div>
+<!-- AUTO·SKIP(호스트 기능). 터치는 버튼, 키보드 Tab/Ctrl, 패드는 대사 동안 원본이 쓰지 않는 X·Y(원본 * # 키에 묶인 버튼)를 빌린다
+     (padhot, host/ui.h. 키 설정에서 따로 붙인 버튼이 있으면 이름표는 그 버튼). 초상화와 이름표에 가리지 않게 화면 오른쪽 위에 둔다.
+     LOG는 기록이 없을 때도 자리를 지킨다(흐리게, 눌러도 열리지 않는다). 첫 쪽이 다 드러날 때 나타나면 AUTO·SKIP이 옆으로 밀린다. -->
+    <div id="play"><span class="pb" action="auto" padhot="star" data-class-on="d.auto"><span class="pk">{{'auto' | key}}</span>AUTO</span><span class="pb" action="skip" padhot="hash" data-class-on="d.skip"><span class="pk">{{'skip' | key}}</span>SKIP</span><span class="pb" pick="dlog" idx="0" hotkey="0" data-class-off="d.log_n == 0"><span class="pk">{{'0' | key}}</span>LOG</span></div>
+<div class="stage-bottom">
+  <div id="box" data-style-width="d.pw + 'dp'">
+    <img id="face-narrow" data-if="d.narrow && d.has_face" data-attr-src="d.face"
+         data-style-width="d.face_w + 'dp'" data-style-height="d.face_h + 'dp'"
+         data-style-left="d.face_left ? '2dp' : 'auto'" data-style-right="d.face_left ? 'auto' : '2dp'"
+         data-style-bottom="(52 - d.face_h * 5 / 16) + 'dp'"/>
+    <div id="panel" class="talk pop" data-style-padding-left="(d.face_left ? d.fcol : 0) + 10 + 'dp'"
+         data-style-padding-right="(d.face_left ? 0 : d.fcol) + 10 + 'dp'">
+      <div class="nameplate" data-if="d.name != ''"
+           data-style-left="d.narrow ? (d.face_left && d.has_face ? 'auto' : '8dp') : ((d.face_left ? d.fcol : 0) + 8 + 'dp')"
+           data-style-right="d.narrow && d.face_left && d.has_face ? '8dp' : 'auto'"><span>{{d.name}}</span></div>
+      <div id="text" data-style-width="d.tw + 'dp'" data-style-color="d.color">
+        <div class="ln" data-for="l : d.lines">{{l.t}}</div>
+        <!-- 넘기는 키(키보드·게임패드): 표시 왼쪽에 늘 같은 자리. 터치는 화면 아무 데나 -->
+        <div class="okhint" data-if="d.next || d.end">{{'ok' | key}}</div>
+        <div class="next-mark" data-if="d.next">▼</div>
+        <div class="end-mark" data-if="d.end">■</div>
+      </div>
+    </div>
+    <img id="face-wide" data-if="!d.narrow && d.has_face" data-attr-src="d.face"
+         data-style-width="(d.face_w * 2) + 'dp'" data-style-height="(d.face_h * 2) + 'dp'"
+         data-style-left="d.face_left ? ((d.fcol - d.face_w * 2) / 2 + 'dp') : 'auto'"
+         data-style-right="d.face_left ? 'auto' : ((d.fcol - d.face_w * 2) / 2 + 'dp')"/>
+  </div>
+</div>
+</body></rml>

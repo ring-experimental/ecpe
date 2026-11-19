@@ -1,0 +1,25 @@
+<rml>
+<head><link type="text/rcss" href="ctl.rcss"/><title>etc</title>
+<style>
+.row span.rv { flex: 0 0 40dp; text-align: right; color: #ffd75e; }
+.row input.range { margin-left: 6dp; }
+</style></head>
+<body class="modal" data-model="ui">
+  <!-- 기타 설정(환경설정의 '기타' 버튼, F3). 원작에 없는 전투 보상 배율이다. 값은 저장 폴더의 ui.ini에 남고
+       restored/rates.c가 승리 계산(0x1cb88) 때 ui_rate로 읽는다. 칸은 host/ui.cpp RATE_STEPS(×0.5 ~ ×10). -->
+  <div class="panel">
+    <h1>기타 설정</h1>
+    <div class="row"><span>경험치</span><input id="first" type="range" min="0" max="6" step="1" data-value="rate_exp"/><span class="rv">{{rate_exp_t}}</span></div>
+    <div class="row"><span>골드</span><input type="range" min="0" max="6" step="1" data-value="rate_gold"/><span class="rv">{{rate_gold_t}}</span></div>
+    <div class="row"><span>드랍률</span><input type="range" min="0" max="6" step="1" data-value="rate_drop"/><span class="rv">{{rate_drop_t}}</span></div>
+    <div class="row"><span>일러스트 리마스터</span><input type="checkbox" data-checked="illust"/></div>
+    <div class="buttons">
+      <button data-event-click="rate_reset">초기화</button>
+      <button data-event-click="close_etc">닫기</button>
+    </div>
+    <div class="note">전투에서 이기면 받는 경험치·골드와 아이템이 떨어질 확률에 곱한다. 떨어뜨리는 아이템이 없는 적은 그대로다. 다음 전투부터 적용된다. 일러스트 리마스터를 끄면 초상화가 원작 도트 그림으로 돌아간다(F4).</div>
+    <div class="mkeys" data-if="src == 0"><span class="mk">↑↓</span>이동<span class="mk">←→</span>값<span class="mk">Enter</span>선택<span class="mk">Esc</span>닫기</div>
+    <div class="mkeys" data-if="src == 2"><span class="mk">↑↓</span>이동<span class="mk">←→</span>값<span class="mk">{{pad_ok}}</span>선택<span class="mk">{{pad_back}}</span>닫기</div>
+  </div>
+</body>
+</rml>

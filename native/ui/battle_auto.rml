@@ -1,0 +1,17 @@
+<rml><head><link type="text/rcss" href="base.rcss"/>
+<!-- 전투 AUTO·x2 토글(호스트 기능: restored/autobattle.c). 대사 AUTO·SKIP과 같은 모양이고 같은 자리(오른쪽 위)에 둔다.
+     전투 메시지(가운데 위)와 아래 띠(파티 카드·명령)·숫자 키 안내(오른쪽 아래)·OK/CLR 패드와 겹치지 않는다.
+     터치는 버튼, 키보드 R/F, 패드는 전투에서 원본이 쓰지 않는 버튼을 빌린다(padhot, host/ui.h): AUTO = 원본 # 키에 묶인 버튼(기본 Y),
+     x2 = 메뉴 버튼(기본 START. 전투의 취소는 B). 키 설정에서 따로 붙인 버튼이 있으면 이름표는 그 버튼. -->
+<style>
+#play { position: absolute; right: 8dp; top: 8dp; display: flex; flex-direction: row; }
+#play .pb { margin-left: 4dp; padding: 0 6dp; height: 16dp; line-height: 16dp; font-size: 10dp; color: #9aa2d8; background-color: #10143290; border: 1dp #4a5296; border-radius: 3dp; }
+#play .pb.on { color: #fff; background-color: #3f78f0; border-color: #ffffce; }
+#play .pk { margin-right: 3dp; color: #ffd75e; }
+body.touch #play .pb { height: 22dp; line-height: 22dp; padding: 0 10dp; font-size: 12dp; }
+body.touch #play .pk { display: none; }
+#play.narrow { right: 4dp; top: 4dp; }
+</style></head>
+<body data-model="battle_auto">
+<div id="play" data-class-narrow="d.narrow"><span class="pb" action="bauto" padhot="hash" data-class-on="d.auto"><span class="pk">{{'bauto' | key}}</span>AUTO</span><span class="pb" action="bfast" padhot="menu" data-class-on="d.fast"><span class="pk">{{'bfast' | key}}</span>x2</span></div>
+</body></rml>

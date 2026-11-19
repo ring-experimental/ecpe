@@ -1,0 +1,93 @@
+<rml><head><link type="text/rcss" href="base.rcss"/><link type="text/rcss" href="fmcore.rcss"/><link type="text/rcss" href="fmshell.rcss"/>
+<!-- 장비(화면 3, 0x32778). 왼쪽: 캐릭터(초상, 이름, 레벨, 능력치 4개)와 장비 칸 5개. 오른쪽: 커서 칸의 후보 목록과 설명.
+     원작은 칸 목록 / 후보 목록 / 상세설명을 한 창에서 번갈아 보였다. 여기서는 모두 함께 보이고 지금 입력을 받는 창에 금색 테두리를 두른다.
+     후보 상태에서는 원작처럼 무기 칸이면 공격 줄, 장갑·갑옷·투구 칸이면 방어 줄에 바뀔 값을 화살표와 함께 보인다.
+     필드 메뉴 틀 안에서는 칸과 후보를 어느 상태에서나 바로 누른다(restored/ui_fmcore.c eq_picks): 칸 = 고르기(고른 칸을 다시 누르면 후보로),
+     후보 = 그 자리에서 장착. 후보 줄마다 지금 장비와의 차이를 보여 미리 고르지 않아도 비교된다. 캐릭터는 틀의 캐릭터 띠가 바꾼다. -->
+<style>
+#left { flex: 0 0 48%; width: 48%; display: flex; flex-direction: column; }
+body.narrow #left { flex: 0 0 46%; width: 46%; }
+body.narrow #cands .vval, body.narrow #info .tag { display: none; }
+body.narrow #who .stat, body.narrow #who .arrows { display: none; }
+#who .arrows2 { display: none; color: #ffd75e; font-size: 10dp; }
+body.narrow #who .arrows2 { display: block; }
+body.narrow #info .ic { margin-right: 2dp; }
+#who .char.plain { background-color: transparent; padding: 0; margin: 0; height: 42dp; }
+#who .nm { flex: 0 1 auto; color: #fff; margin: 0 3dp; }
+#who .line .gap { margin-left: 8dp; }
+#who .arrows { color: #ffd75e; font-size: 10dp; }
+#stats { display: flex; flex-direction: row; flex-wrap: wrap; margin-top: 4dp; }
+#stats .st { width: 50%; display: flex; flex-direction: row; align-items: center; height: 14dp; box-sizing: border-box; padding-right: 6dp; }
+body.narrow #stats .st { width: 100%; padding-right: 0; }
+#stats .st .label { flex: 1 1 0; font-size: 10dp; }
+#stats .st .v { flex: 0 0 auto; color: #fff; }
+#stats .st .up { color: #abfcff; }
+#stats .st .down { color: #ff901a; }
+#stats .st .to { margin: 0 2dp; font-size: 10dp; }
+#slots { margin-top: 6dp; flex: 1 1 0; }
+body.narrow #slots { margin-top: 4dp; }
+/* 장비 칸 이름(무기류 등)은 이름 앞 열(.vlead)로 둔다. 좁으면 접고, 빈 칸은 이름 자리에 칸 이름을 보인다 */
+#slots .vlead { width: 66dp; text-align: left; font-size: 10dp; color: #9aa2d8; }
+#slots .vrow.sel .vlead { color: #e0e6ff; }
+body.narrow #slots .vlead { display: none; }
+#cands { flex: 1 1 0; display: flex; flex-direction: column; min-height: 0; }
+#rows { flex: 1 1 0; min-height: 0; }
+#info { margin-top: 6dp; flex: 0 0 auto; }
+#info .head { display: flex; flex-direction: row; align-items: center; height: 18dp; }
+#info .head .name { flex: 1 1 0; min-width: 0; white-space: nowrap; overflow: hidden; color: #fff; }
+#info .text { margin-top: 4dp; min-height: 28dp; color: #e8ebff; word-break: break-word; }
+/* 후보 줄의 차이(▲ 오름, ▼ 내림) */
+.dc { flex: 0 0 auto; width: 32dp; text-align: right; font-size: 10dp; color: #8c94c4; }
+.dc.up { color: #abfcff; }
+.dc.dn { color: #ff901a; }
+.vrow.sel .dc.up { color: #e0ffff; }
+.vrow.sel .dc.dn { color: #ffc070; }
+#cands .title .sub .dh { color: #9aa2d8; margin-right: 6dp; }
+body.narrow .dc { width: 24dp; }
+body.narrow #cands .vic { display: none; } /* 좁으면 아이콘을 접어 이름 자리를 남긴다(차이 열은 남긴다) */
+body.shell .keybar { display: none; }
+body.shell #who .arrows, body.shell #who .arrows2 { display: none; }
+</style></head>
+<body data-model="fm_equip" data-class-narrow="d.narrow" data-class-shell="d.shell" data-class-chars="d.chars">
+<div class="screen col-flex" data-class-dim="!d.shell">
+  <div class="cols">
+    <div id="left">
+      <div id="who" class="panel pop">
+        <div class="char plain">
+          <div class="face portrait"><img data-attr-src="d.face"/><span class="lvtag">LV{{d.lv}}</span></div>
+          <div class="info">
+            <div class="line"><span class="arrows" key="left" shoulder="prev" data-if="d.state == 0">◀</span><span class="nm">{{d.name}}</span><span class="arrows" key="right" shoulder="next" data-if="d.state == 0">▶</span><span class="lvl"><span class="label small">LV</span><span class="num gap">{{d.lv}}</span></span></div>
+            <div class="arrows2" data-if="d.state == 0"><span key="left" shoulder="prev">◀</span> <span key="right" shoulder="next">▶</span></div>
+            <div class="stat"><span class="label">HP</span><div class="gauge hp"><div class="fill" data-style-width="d.hp_pct + '%'"></div></div><span class="v hpv">{{d.hp}}/{{d.hp_max}}</span></div>
+            <div class="stat"><span class="label">MP</span><div class="gauge mp"><div class="fill" data-style-width="d.mp_pct + '%'"></div></div><span class="v mpv">{{d.mp}}/{{d.mp_max}}</span></div>
+          </div>
+        </div>
+        <div id="stats"><div data-for="s : d.stats" class="st"><span class="label">{{s.name}}</span><span class="v">{{s.v}}</span><span data-if="s.cmp"><span class="to" data-class-up="s.dir == 1" data-class-down="s.dir == -1"><span data-if="s.dir == 1">▲</span><span data-if="s.dir == -1">▼</span><span data-if="s.dir == 0">▶</span></span><span class="v" data-class-up="s.dir == 1" data-class-down="s.dir == -1">{{s.nv}}</span></span></div></div>
+      </div>
+      <div id="slots" class="panel pop" data-class-focus="d.state == 0">
+        <div class="title">장비</div>
+        <vlist for="s : d.slots" nav="slots" pick="spick" idx="it_index" sel="it_index == d.slot &amp;&amp; d.state == 0" idle="it_index == d.slot &amp;&amp; d.state != 0"
+               dis="s.empty" icon="s.icon" lead="s.kind" label="s.empty ? (d.narrow ? s.kind : '-') : s.name" badge="s.enh > 0 ? '+' + s.enh : ''"/>
+      </div>
+    </div>
+    <div class="side">
+      <div id="cands" class="panel pop" data-class-focus="d.state == 1">
+        <div class="title">후보<span class="sub"><span class="dh" data-if="d.cmp &amp;&amp; !d.narrow">{{d.cmp_p}} / {{d.cmp_m}}</span>{{d.total}}개</span></div>
+        <vlist id="rows" scroll="clist" for="it : d.cands" nav="cands" pick="cpick" idx="it.i" off="!it.on"
+               sel="it.sel &amp;&amp; d.state == 1" idle="it.sel &amp;&amp; d.state == 2"
+               icon="it.icon" label="it.name" value="'×' + it.count" empty="d.total == 0" empty-text="{{d.t_none}}"><span class="dc" data-if="d.cmp" data-class-up="it.dp_s == 1" data-class-dn="it.dp_s == -1">{{it.dp}}</span><span class="dc" data-if="d.cmp" data-class-up="it.dm_s == 1" data-class-dn="it.dm_s == -1">{{it.dm}}</span></vlist>
+      </div>
+      <div id="info" class="panel pop" data-class-focus="d.state == 2">
+        <div class="head" data-if="d.has_info"><span class="ic"><img data-if="d.info_icon != ''" data-attr-src="d.info_icon"/></span><span class="name">{{d.info_name}}</span><span class="tag info" data-if="d.state == 2">상세설명</span></div>
+        <div class="head dimtx" data-if="!d.has_info"><span>-</span></div>
+        <div class="sep"></div>
+        <div class="text">{{d.info_desc}}</div>
+      </div>
+    </div>
+  </div>
+  <div class="panel flat keybar keys"><span class="pair kb" data-for="k : d.keys" data-class-off="!k.on" data-class-nav="k.nav" data-attr-key="k.key"><span class="key">{{k.k | key}}</span>{{k.t}}</span></div>
+</div>
+<div data-if="d.shell"><fmbar/></div>
+<!-- 메시지가 떠 있는 동안 원본은 OK/CLR만 받아 메시지를 닫는다. 터치·마우스는 화면 어디를 눌러도 닫히게 한다(막이 버튼 띠를 덮는다) -->
+<div class="toast-wrap" key="clear" data-if="d.msg != ''"><div class="toast">{{d.msg}}</div></div>
+</body></rml>

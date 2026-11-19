@@ -1,0 +1,40 @@
+<rml><head><link type="text/rcss" href="base.rcss"/><link type="text/rcss" href="fmshell.rcss"/>
+<!-- 필드 메뉴 틀(restored/fm_shell.c). 모드 1의 화면 0~7 아래에 늘 깔린다(ui_below): 바탕 막, 왼쪽 레일, 캐릭터 띠.
+     화면이 바뀌어도 이 문서는 닫히지 않으므로 레일과 띠는 움직이지 않는다(.pop 여는 움직임도 처음 한 번만).
+     레일 줄·칩·◀▶는 pick으로 fm_shell.c가 받아 원본 키를 동기로 넣어 바로 그 화면·캐릭터로 간다. -->
+<style>
+.full { position: absolute; left: 0; top: 0; width: 100%; height: 100%; }
+</style></head>
+<body data-model="fm_shell" data-class-narrow="d.narrow">
+<div class="full dim"></div>
+<div id="rail" class="panel pop" data-class-lock="d.lock">
+  <!-- 게임패드 LB/RB(host pad_shortcut): 레일 이전/다음 -->
+  <span class="shk" rail-shoulder="prev" pick="railstep" idx="0" data-if="!d.lock"></span><span class="shk" rail-shoulder="next" pick="railstep" idx="1" data-if="!d.lock"></span>
+  <div data-for="r : d.rail">
+    <div class="rrow" data-if="!d.lock" pick="rail" data-attr-idx="r.i" data-class-cur="r.i == d.cur" data-class-sel="r.i == d.tab"><span class="ric"><img data-if="r.icon != ''" data-attr-src="r.icon"/></span><span class="rnm">{{r.name}}</span></div>
+    <div class="rrow" data-if="d.lock" data-class-cur="r.i == d.cur" data-class-sel="r.i == d.tab"><span class="ric"><img data-if="r.icon != ''" data-attr-src="r.icon"/></span><span class="rnm">{{r.name}}</span></div>
+  </div>
+  <!-- 레일 넘기기 안내: 게임패드 LB/RB, 키보드 Tab(터치·마우스는 줄을 바로 누른다) -->
+  <div class="rhint" data-if="!d.lock"><span class="ponly"><span class="key">{{'lb' | padkey}}</span><span class="key">{{'rb' | padkey}}</span></span><span class="konly"><span class="key">Tab</span></span><span class="rht">메뉴 이동</span></div>
+  <div class="rgap"></div>
+  <div id="rinfo">
+    <h2>소지금</h2><div class="rv gold">{{d.gold}} G</div>
+    <h2>플레이 시간</h2><div class="rv num">{{d.time}}</div>
+    <h2>장소</h2><div class="place">{{d.place}}</div>
+  </div>
+</div>
+<div id="chips" class="pop" data-if="d.chars" data-class-lock="d.lock">
+  <!-- 게임패드 LT/RT: 캐릭터 이전/다음(스킬 단축키 대기 중에는 거둔다: RT가 원본 3번 키) -->
+  <span class="shk" char-shoulder="prev" pick="charstep" idx="0" data-if="d.cshoulder"></span><span class="shk" char-shoulder="next" pick="charstep" idx="1" data-if="d.cshoulder"></span>
+  <div class="carr" pick="charstep" idx="0" data-if="!d.lock &amp;&amp; d.members &gt; 1"><span class="chk ponly" data-if="d.cshoulder">{{'lt' | padkey}}</span><span class="chk konly">[</span><span>◀</span></div>
+  <div class="carr" data-if="d.lock || d.members &lt; 2">◀</div>
+  <div class="chipbox">
+    <div class="chip" data-for="c : d.chips" data-class-off="!c.on" data-class-sel="c.sel" pick="chip" data-attr-idx="d.lock ? -1 : c.i">
+      <div class="cf"><img data-if="c.face != ''" data-attr-src="c.face"/></div>
+      <div class="ct"><span class="cn">{{c.name}}</span><span class="cl">LV {{c.lv}}</span></div>
+    </div>
+  </div>
+  <div class="carr" pick="charstep" idx="1" data-if="!d.lock &amp;&amp; d.members &gt; 1"><span>▶</span><span class="chk konly">]</span><span class="chk ponly" data-if="d.cshoulder">{{'rt' | padkey}}</span></div>
+  <div class="carr" data-if="d.lock || d.members &lt; 2">▶</div>
+</div>
+</body></rml>

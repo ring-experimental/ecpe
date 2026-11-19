@@ -1,0 +1,195 @@
+<rml><head><link type="text/rcss" href="base.rcss"/>
+<!-- 미니게임 저들의영웅(벼베기, restored/ui_minigame.c hero_frame). 원본은 240폭 작은 창 하나(점수, 논, 숫자 넷, 실수, 시간 막대)와 5줄 도움말.
+     넓은 화면: 왼쪽 게임판(제목·점수·실수·논 3배·시간·숫자 넷과 지금 할 일) + 오른쪽 숫자 키패드. 규칙과 보상은 도움말 창.
+     누르는 것은 모두 원본 키다: 숫자 0~9, 허리펴기·시작·다시(OK), 도움말(*), 나가기(CLR). 키패드는 진행 틱에만 눌린다(원본도 연출 중 키를 버린다). -->
+<style>
+body { decorator: vertical-gradient(#20402a #0a1410); }
+#wrap { position: absolute; left: 0; top: 0; width: 100%; height: 100%; box-sizing: border-box; padding: 8dp 10dp; display: flex; flex-direction: row; justify-content: center; align-items: center; }
+#game { flex: 0 0 auto; width: 316dp; padding: 6dp 8dp 8dp 8dp; }
+#side { flex: 1 1 0; min-width: 150dp; max-width: 200dp; margin-left: 8dp; align-self: stretch; display: flex; flex-direction: column; }
+body.narrow #game { width: 100%; }
+body.narrow #side { display: none; }
+
+.hud { display: flex; flex-direction: row; align-items: center; height: 22dp; }
+.sc { flex: 1 1 0; display: flex; flex-direction: row; align-items: center; height: 22dp; padding: 0 6dp; background-color: #0a0e28; border: 1dp #4a5296; border-radius: 3dp; }
+.sc .label { color: #7df08c; font-size: 10dp; margin-right: 6dp; }
+.sc .v { flex: 1 1 0; text-align: right; font-size: 16dp; line-height: 18dp; color: #ffd75e; font-effect: outline(1dp #3a2a00); }
+.sc .b { color: #cfd3ff; font-size: 10dp; margin-left: 6dp; }
+.misses { flex: 0 0 auto; display: flex; flex-direction: row; align-items: center; margin-left: 6dp; height: 22dp; padding: 0 4dp; background-color: #0a0e28; border: 1dp #4a5296; border-radius: 3dp; }
+.misses .label { color: #ff9a9a; font-size: 10dp; margin-right: 3dp; }
+.mk { width: 10dp; height: 10dp; margin-left: 2dp; border-radius: 5dp; border: 1dp #6a72a0; background-color: #1a1e44; }
+.mk.on { border-color: #ffb0b0; background-color: #e04848; }
+
+#stagebox { position: relative; margin-top: 6dp; width: 300dp; height: 132dp; border: 2dp #c8b070; border-radius: 3dp; overflow: hidden; background-color: #d1d4ed; }
+#stage { position: absolute; left: 3dp; top: 3dp; width: 294dp; height: 126dp; }
+.cmb { position: absolute; right: 6dp; top: 4dp; padding: 1dp 6dp; border-radius: 3dp; background-color: #10143cc0; color: #ffd75e; font-size: 10dp; }
+.cmb .g { color: #cfd3ff; }
+.flash { position: absolute; left: 0; right: 0; top: 46dp; text-align: center; font-size: 24dp; line-height: 28dp; color: #fff; font-effect: outline(2dp #1a1050); }
+.flash.good { color: #ffe36a; font-effect: outline(2dp #6a3a00); }
+.flash.bad { color: #ff7070; font-effect: outline(2dp #400000); }
+.cover { position: absolute; left: 0; top: 0; width: 100%; height: 100%; display: flex; flex-direction: column; justify-content: center; align-items: center; background-color: #070a1c90; }
+.cover .big { font-size: 24dp; line-height: 28dp; color: #fff; font-effect: outline(2dp #1a1050); }
+.cover .rec { margin-top: 2dp; color: #ffd75e; }
+.cover .rw { margin-top: 4dp; padding: 2dp 8dp; border-radius: 3dp; background-color: #3a2a00d0; color: #ffe9b0; }
+
+.timer { margin-top: 5dp; height: 8dp; border-radius: 3dp; background-color: #0a0e28; border: 1dp #4a5296; }
+.timer .fill { height: 100%; border-radius: 2dp; background-color: #f0a040; }
+.timer .fill.fast { background-color: #6ad46a; }
+
+.qrow { display: flex; flex-direction: row; align-items: center; margin-top: 6dp; height: 40dp; }
+.dg { position: relative; width: 34dp; height: 38dp; margin-right: 4dp; text-align: center; line-height: 36dp; font-size: 24dp; color: #fff; border-radius: 3dp; border: 1dp #4a5296; background-color: #0a0e28; }
+.dg.tgt { border: 2dp #ffd75e; color: #ffd75e; decorator: vertical-gradient(#3a3010 #0a0e28); }
+.dg.dim { color: #6a72a0; }
+.say { flex: 1 1 0; margin-left: 4dp; padding: 3dp 6dp; height: 32dp; border-radius: 3dp; background-color: #10143c; border: 1dp #4a5296; }
+.say .m { font-size: 10dp; line-height: 12dp; color: #7df08c; }
+.say .m.s { color: #8cc8ff; }
+.say .m.d { color: #ff9ad0; }
+.say.dim { opacity: 0.4; }
+.say .t { font-size: 16dp; line-height: 18dp; color: #fff; }
+
+/* 키패드 */
+#pad { padding: 6dp 8dp 8dp 8dp; }
+.keys { display: flex; flex-direction: row; flex-wrap: wrap; justify-content: space-between; }
+.kp { width: 31%; height: 38dp; margin-bottom: 5dp; line-height: 38dp; text-align: center; font-size: 24dp; color: #fff; border-radius: 4dp; border: 1dp #8c96e8; decorator: vertical-gradient(#3a46a0 #232a6a); }
+.kp.press { decorator: vertical-gradient(#5a82f8 #3f78f0); border-color: #ffffce; }
+.pk { position: absolute; left: 3dp; top: 2dp; font-size: 10dp; line-height: 12dp; color: #9aa2d8; }
+.kp { position: relative; }
+.kp.wide .pk { position: static; margin-right: 4dp; }
+.dk { position: absolute; right: 2dp; bottom: 1dp; font-size: 10dp; line-height: 12dp; color: #9aa2d8; }
+.dg.glyph { font-size: 16dp; }
+.kp.glyph { font-size: 16dp; }
+.kp.off { color: #4a527a; border-color: #2a3266; decorator: none; background-color: #10143a; }
+.kp.wide { width: 65.5%; font-size: 14dp; }
+.kp.wide.hi { border-color: #8cc8ff; color: #cfeaff; }
+.go { margin-top: 4dp; text-align: center; height: 30dp; line-height: 30dp; border-radius: 3dp; color: #fff; font-size: 16dp; border: 1dp #f2c84a; decorator: horizontal-gradient(#b4781a #7a4a0c); }
+.go.press { decorator: horizontal-gradient(#e0a030 #a8741a); }
+.kh { color: #9aa2d8; font-size: 10dp; margin-right: 4dp; }
+.go .kh { color: #ffe9b0; }
+body.touch .kh { display: none; }
+.foot { display: flex; flex-direction: row; justify-content: flex-end; margin-top: auto; padding-top: 6dp; }
+.fb { height: 20dp; line-height: 20dp; padding: 0 8dp; margin-left: 4dp; border-radius: 3dp; color: #fff; border: 1dp #8c96e8; background-color: #2a3470; }
+body.touch .fb { height: 26dp; line-height: 26dp; }
+.ktip { color: #9aa2d8; font-size: 10dp; line-height: 12dp; margin-top: 2dp; }
+body.touch .ktip { display: none; }
+
+/* 위에 뜨는 창 */
+.ov { position: absolute; left: 0; top: 0; width: 100%; height: 100%; display: flex; justify-content: center; align-items: center; background-color: #070a1cb0; }
+.ov .panel { width: 240dp; padding: 8dp 12dp 10dp 12dp; }
+.ov .q { text-align: center; margin: 8dp 0 10dp 0; font-size: 16dp; line-height: 20dp; color: #fff; }
+.btns { display: flex; flex-direction: row; justify-content: center; }
+.btn { width: 92dp; margin: 0 5dp; height: 24dp; line-height: 24dp; text-align: center; border-radius: 3dp; color: #fff; border: 1dp #8c96e8; background-color: #2a3470; }
+.btn.yes { border-color: #f2c84a; decorator: horizontal-gradient(#b4781a #7a4a0c); }
+body.touch .btn { height: 30dp; line-height: 30dp; }
+#helpp { width: 470dp; max-height: 300dp; display: flex; flex-direction: column; }
+body.narrow #helpp { width: 100%; }
+.hcols { display: flex; flex-direction: row; }
+.hcol { flex: 1 1 0; }
+.hcol + .hcol { margin-left: 10dp; }
+.hh { color: #ffd75e; margin: 2dp 0 2dp 0; }
+.hl { color: #fff; font-size: 12dp; line-height: 16dp; }
+.hl .k { color: #7df08c; }
+.hl .s { color: #8cc8ff; }
+.hl .d { color: #ff9ad0; }
+.tr { display: flex; flex-direction: row; font-size: 12dp; line-height: 15dp; color: #cfd3ff; }
+.tr .n { width: 40dp; text-align: right; margin-right: 8dp; color: #ffd75e; }
+.tr.cur, .tr.got { color: #fff; }
+.tr.cur .t { color: #ffd75e; }
+.tr .ck { margin-left: 4dp; color: #7df08c; }
+.note { color: #9aa2d8; font-size: 10dp; line-height: 12dp; margin-top: 2dp; }
+</style></head>
+<body data-model="hero" data-class-narrow="d.narrow">
+<div id="wrap">
+  <div id="game" class="panel gold pop">
+    <div class="title">{{d.title}}<span class="sub">최고 {{d.best}}</span></div>
+    <div class="hud">
+      <div class="sc"><span class="label">SCORE</span><span class="v">{{d.score}}</span><span class="b" data-if="d.bonus > 0">한 번에 +{{d.bonus + 1}}</span></div>
+      <div class="misses"><span class="label">실수</span><span data-for="m : d.miss" class="mk" data-class-on="m.on"></span></div>
+    </div>
+
+    <div id="stagebox">
+      <img id="stage" data-if="d.stage != ''" data-attr-src="d.stage"/>
+      <div class="cmb" data-if="d.play &amp;&amp; d.combo > 0">연속 {{d.combo}}<span class="g"> · 보너스까지 {{d.combo_left}}</span></div>
+      <div class="flash good" data-if="d.act == 1">베기!</div>
+      <div class="flash good" data-if="d.act == 2">허리 쭉~</div>
+      <div class="flash good" data-if="d.act == 3">캬~</div>
+      <div class="flash bad" data-if="d.act == 4">실수!</div>
+      <div class="cover" data-if="d.ready" key="ok"><div class="big">{{d.ready_t}}</div></div>
+      <div class="cover" data-if="d.over">
+        <div class="big">{{d.over_t}}</div>
+        <div class="rec" data-if="d.record">최고 기록!</div>
+        <div class="rw" data-if="d.reward != ''">{{d.reward}}</div>
+      </div>
+    </div>
+    <div class="timer"><div class="fill" data-class-fast="d.time_fast" data-style-width="d.time_pct + '%'"></div></div>
+
+    <div class="qrow">
+      <div data-for="g : d.digits" class="dg" data-class-tgt="g.tgt" data-class-dim="!d.play" data-class-glyph="d.pad"><span data-if="!d.pad">{{g.v}}</span><span data-if="d.pad">{{g.k}}</span></div>
+      <div class="say" data-class-dim="!d.play">
+        <div data-if="d.mode == 0"><div class="m">보통</div><div class="t">맨 오른쪽 {{d.pad ? '버튼' : '숫자'}}</div></div>
+        <div data-if="d.mode == 1"><div class="m s">허리펴기</div><div class="t" data-if="!d.pad">결정(OK)</div><div class="t" data-if="d.pad">{{d.kok}} 버튼</div></div>
+        <div data-if="d.mode == 2"><div class="m d">술마시기</div><div class="t">넷에 없는 {{d.pad ? '버튼' : '숫자'}}</div></div>
+      </div>
+    </div>
+  </div>
+
+  <div id="side">
+    <div id="pad" class="panel">
+      <div class="keys">
+        <div class="kp" data-class-glyph="d.pad" data-class-off="!d.can_key" data-attr-key="d.can_key ? '1' : ''"><span data-if="!d.pad">1</span><span data-if="d.pad">{{d.k1}}</span></div>
+        <div class="kp" data-class-glyph="d.pad" data-class-off="!d.can_key" data-attr-key="d.can_key ? '2' : ''"><span data-if="!d.pad">2</span><span data-if="d.pad">{{d.k2}}</span></div>
+        <div class="kp" data-class-glyph="d.pad" data-class-off="!d.can_key" data-attr-key="d.can_key ? '3' : ''"><span data-if="!d.pad">3</span><span data-if="d.pad">{{d.k3}}</span></div>
+        <div class="kp" data-class-glyph="d.pad" data-class-off="!d.can_key" data-attr-key="d.can_key ? '4' : ''"><span data-if="!d.pad">4</span><span data-if="d.pad">{{d.k4}}</span></div>
+        <div class="kp" data-class-glyph="d.pad" data-class-off="!d.can_key" data-attr-key="d.can_key ? '5' : ''"><span data-if="!d.pad">5</span><span data-if="d.pad">{{d.k5}}</span></div>
+        <div class="kp" data-class-glyph="d.pad" data-class-off="!d.can_key" data-attr-key="d.can_key ? '6' : ''"><span data-if="!d.pad">6</span><span data-if="d.pad">{{d.k6}}</span></div>
+        <div class="kp" data-class-glyph="d.pad" data-class-off="!d.can_key" data-attr-key="d.can_key ? '7' : ''"><span data-if="!d.pad">7</span><span data-if="d.pad">{{d.k7}}</span></div>
+        <div class="kp" data-class-glyph="d.pad" data-class-off="!d.can_key" data-attr-key="d.can_key ? '8' : ''"><span data-if="!d.pad">8</span><span data-if="d.pad">{{d.k8}}</span></div>
+        <div class="kp" data-class-glyph="d.pad" data-class-off="!d.can_key" data-attr-key="d.can_key ? '9' : ''"><span data-if="!d.pad">9</span><span data-if="d.pad">{{d.k9}}</span></div>
+        <div class="kp wide" data-class-off="!d.can_key" data-class-hi="d.mode == 1" data-attr-key="d.can_key ? 'ok' : ''"><span class="kh" data-if="!d.pad">{{'ok' | key}}</span><span data-if="d.pad">{{d.kok}} </span>허리펴기</div>
+        <div class="kp" data-class-glyph="d.pad" data-class-off="!d.can_key" data-attr-key="d.can_key ? '0' : ''"><span data-if="!d.pad">0</span><span data-if="d.pad">{{d.k0}}</span></div>
+      </div>
+      <div class="go" data-if="d.ready &amp;&amp; !d.help &amp;&amp; !d.exit" key="ok"><span class="kh">{{'ok' | key}}</span>시작</div>
+      <div class="go" data-if="d.over &amp;&amp; !d.help &amp;&amp; !d.exit" key="ok"><span class="kh">{{'ok' | key}}</span>다시 하기</div>
+      <div class="ktip" data-if="!d.pad">키보드: 숫자 키로 칩니다</div>
+      
+    </div>
+    <div class="foot">
+      <div class="fb" key="star"><span class="kh" data-if="!d.layer">{{'star' | key}}</span>도움말</div>
+      <div class="fb" key="clear"><span class="kh" data-if="!d.layer">{{'clear' | key}}</span><span class="kh" data-if="d.layer">{{d.kclr}}</span>나가기</div>
+    </div>
+  </div>
+</div>
+
+<!-- 도움말(원본 상태 0xf): 규칙, 제목, 보상 -->
+<div class="ov" data-if="d.help"><div id="helpp" class="panel gold pop">
+  <div class="title">도움말</div>
+  <div class="hcols">
+    <div class="hcol">
+      <div class="hh">하는 법</div>
+      <div class="hl" data-if="!d.pad">숫자 넷 가운데 <span class="k">맨 오른쪽 숫자</span>를 누르면 벼를 벱니다. 벨 때마다 숫자가 한 칸씩 밀립니다.</div>
+      <div class="hl" data-if="d.pad">버튼 넷 가운데 <span class="k">맨 오른쪽 버튼</span>을 누르면 벼를 벱니다. 벨 때마다 한 칸씩 밀립니다.</div>
+      <div class="hl"><span class="s">허리펴기</span> 때는 <span class="k" data-if="!d.pad">결정(OK)</span><span class="k" data-if="d.pad">{{d.kok}}</span>을 누르세요.</div>
+      <div class="hl"><span class="d">술마시기</span> 때는 <span class="k">넷에 없는 {{d.pad ? '버튼' : '숫자'}}</span>를 누르세요.</div>
+      <div class="hl">틀리거나 시간 막대가 다 줄면 실수. 실수 5번이면 끝납니다.</div>
+      <div class="hl">막대가 초록일 때(빠르게) 30번 연속 성공하면 실수 하나를 지우고, 실수가 없으면 한 번에 얻는 점수가 1 오릅니다.</div>
+    </div>
+    <div class="hcol">
+      <div class="hh">칭호(최고 점수)</div>
+      <div data-for="r : d.ranks" class="tr" data-class-cur="r.cur"><span class="n">{{r.th}}</span><span class="t">{{r.t}}</span></div>
+      <div class="hh">보상</div>
+      <div data-for="r : d.rewards" class="tr" data-class-got="r.got"><span class="n">{{r.th}}</span><span class="t">{{r.t}}</span><span class="ck" data-if="r.got">받음</span></div>
+      <div class="note" data-if="!d.field">보상은 필드에서 할 때 최고 기록으로 처음 넘은 점수에 받습니다.</div>
+    </div>
+  </div>
+  <div class="foot"><div class="fb" key="clear"><span class="kh">{{'clear' | key}}</span>닫기</div></div>
+</div></div>
+
+<!-- 끝내기 확인 -->
+<div class="ov" data-if="d.exit"><div class="panel gold pop">
+  <div class="title">{{d.title}}</div>
+  <div class="q">{{d.ask}}</div>
+  <div class="btns">
+    <div class="btn yes" key="ok"><span class="kh">{{'ok' | key}}</span>예</div>
+    <div class="btn" key="clear"><span class="kh">{{'clear' | key}}</span>아니오</div>
+  </div>
+</div></div>
+</body></rml>

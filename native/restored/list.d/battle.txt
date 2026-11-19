@@ -1,0 +1,9 @@
+1bcd4 ui_battle.c wrap
+1e0d8 ui_battle.c wrap
+1e894 ui_battle.c wrap
+1ec54 ui_battle.c wrap
+1f3d0 ui_battle.c wrap
+1fe38 ui_battle.c wrap
+1ee3c ui_battle.c wrap
+1c1ac ui_battle.c wrap
+23120 ui_battle.c wrap

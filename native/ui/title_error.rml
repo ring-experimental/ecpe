@@ -1,0 +1,15 @@
+<rml><head><link type="text/rcss" href="base.rcss"/>
+<!-- 프로그램오류(장면 0, 0xe588). OK/CLR/5를 누르면 원본이 메인 메뉴로 보낸다. -->
+<style>
+#box { width: 200dp; text-align: center; border-color: #ff7a7a; }
+</style></head>
+<body data-model="title_error">
+<div class="tapall" key="ok"></div>
+<div class="screen center">
+  <div id="box" class="panel pop">
+    <div class="bad big">{{d.t}}</div>
+    <div class="sep"></div>
+    <div class="keys"><span class="kb" data-for="k : d.keys" data-attr-key="k.key"><span class="key">{{k.k | key}}</span>{{k.t}}</span></div>
+  </div>
+</div>
+</body></rml>

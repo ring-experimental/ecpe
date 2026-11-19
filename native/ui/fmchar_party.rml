@@ -1,0 +1,106 @@
+<rml><head><link type="text/rcss" href="base.rcss"/><link type="text/rcss" href="fmchar.rcss"/><link type="text/rcss" href="fmshell.rcss"/>
+<title>전투동료설정</title>
+<style>
+/* 필드 메뉴 화면 6 전투파티(원본 0x34cb8 "전투동료설정"). 원본은 위에 전투 칸 3개, 아래 한 줄에 커서의 동료 한 명만 보인다.
+   여기서는 위에 전투 칸 3개(고른 순서), 아래에 파티 전원을 늘어놓고 커서와 이미 고른 순번을 함께 보인다. */
+#slots { display: flex; flex-direction: row; flex: 1 1 0; min-height: 0; }
+.slot { flex: 1 1 0; min-width: 0; margin-left: 6dp; }
+.slot:first-child { margin-left: 0; }
+.slot.empty { border-color: #4a5296; }
+.slotin { display: flex; flex-direction: row; }
+.slotface { flex: 0 0 auto; }
+.slotinfo { flex: 1 1 0; min-width: 0; margin-left: 6dp; }
+.emptytx { text-align: center; color: #7c84b0; margin-top: 30dp; font-size: 16dp; line-height: 18dp; }
+#roster { margin-top: 6dp; }
+#rlist { display: flex; flex-direction: row; }
+.mem { flex: 1 1 0; min-width: 0; margin-left: 4dp; padding: 3dp 4dp; border: 1dp #4a5296; border-radius: 3dp; background-color: #10143280; display: flex; flex-direction: row; align-items: center; }
+.mem:first-child { margin-left: 0; }
+.mem.sel { border-color: #a8c4ff; decorator: horizontal-gradient(#3f78f0 #2a4ab8); }
+.mem.picked { opacity: 0.6; }
+.nrow.cur { opacity: 0.55; }
+.mem.sel.picked { opacity: 1; }
+.mem .mface { flex: 0 0 auto; width: 28dp; height: 48dp; overflow: hidden; position: relative; }
+.mem .mface img { position: relative; left: -12dp; top: -2dp; }
+.mem .minfo { flex: 1 1 0; min-width: 0; margin-left: 4dp; white-space: nowrap; overflow: hidden; }
+.badge { display: inline-block; width: 14dp; height: 14dp; line-height: 14dp; text-align: center; border-radius: 7dp; background-color: #ffd75e; color: #1a1050; margin-right: 4dp; }
+.badge.off { background-color: #2a3470; color: #8c94c4; }
+.sp { margin-left: 4dp; }
+.ename { height: 10dp; margin-bottom: 2dp; }
+.mem .kv.small { height: 12dp; }
+#donebar { text-align: center; color: #7df08c; }
+/* 아직 고르지 않았을 때 보이는 지금 편성(ui_fmchar.c f_34cb8의 cur): 흐리게, 머리에 "현재" */
+.slot.cur { border-color: #4a5296; }
+.slot.cur .slotin { opacity: 0.55; }
+.curtag { float: right; color: #9aa2d8; font-size: 10dp; }
+.badge.cur { background-color: #2a3470; color: #cfd3ff; }
+#curbar { text-align: center; color: #9aa2d8; }
+/* 좁은 화면: 전투 칸과 파티를 한 줄짜리 행으로 쌓는다(얼굴은 작게, 게이지는 숫자로) */
+body.narrow #slots, body.narrow #roster { display: none; }
+.nrow { display: flex; flex-direction: row; align-items: center; height: 18dp; padding: 0 4dp; margin-bottom: 2dp; border: 1dp #4a5296; border-radius: 3dp; white-space: nowrap; }
+.nname { flex: 1 1 0; min-width: 0; overflow: hidden; }
+.nmem { display: flex; flex-direction: row; align-items: center; height: 28dp; padding: 0 4dp; margin-bottom: 2dp; border: 1dp #4a5296; border-radius: 3dp; background-color: #10143280; white-space: nowrap; }
+.nmem.sel { border-color: #a8c4ff; decorator: horizontal-gradient(#3f78f0 #2a4ab8); }
+.nmem.picked { opacity: 0.6; }
+.nmem.sel.picked { opacity: 1; }
+.nmem .mface { flex: 0 0 auto; width: 24dp; height: 26dp; overflow: hidden; position: relative; margin-right: 4dp; }
+.nmem .mface img { position: relative; left: -14dp; top: -2dp; }
+.nnum { flex: 0 0 auto; text-align: right; }
+.nnum div { height: 12dp; }
+body.shell .oldkeys { display: none; }
+</style></head>
+<body data-model="fmchar_party" data-class-narrow="d.narrow" data-class-shell="d.shell" data-class-chars="d.chars">
+<div class="screen col-flex" data-class-narrow="d.narrow" data-class-dim="!d.shell">
+  <div class="panel pop col-flex grow">
+    <div class="title">{{d.title}}<span class="sub">{{d.picked}}/{{d.need}}</span></div>
+    <div id="slots">
+      <div class="slot panel" data-for="it : d.slots" data-class-empty="it.empty" data-class-cur="it.cur">
+        <h2><span class="badge" data-class-off="it.empty" data-class-cur="it.cur">{{it.no}}</span>전투 {{it.no}}<span class="curtag" data-if="it.cur">현재</span></h2>
+        <div class="emptytx" data-if="it.empty">EMPTY</div>
+        <div class="slotin" data-if="!it.empty">
+          <div class="slotface"><div class="facebox" data-style-width="it.face_w + 'dp'" data-style-height="it.face_h + 'dp'"><img data-if="it.face != ''" data-attr-src="it.face"/></div></div>
+          <div class="slotinfo">
+            <div class="outline">{{it.name}}</div>
+            <div class="ename"><img data-if="it.ename != ''" data-attr-src="it.ename"/></div>
+            <div class="kv"><span class="k">LV</span><span class="v">{{it.lv}}</span></div>
+            <div class="gline"><div class="kv"><span class="k">HP</span><span class="v hpv">{{it.hp}}/{{it.hpmax}}</span></div>
+              <div class="gauge hp"><div class="fill" data-style-width="it.hp_pct + '%'"></div></div></div>
+            <div class="gline"><div class="kv"><span class="k">MP</span><span class="v mpv">{{it.mp}}/{{it.mpmax}}</span></div>
+              <div class="gauge mp"><div class="fill" data-style-width="it.mp_pct + '%'"></div></div></div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div id="roster">
+      <h2>파티 ({{d.count}}명)</h2>
+      <div id="rlist">
+        <div class="mem" nav="roster" data-attr-idx="it.i" data-for="it : d.roster" data-class-sel="it_index == d.cursor &amp;&amp; !d.done" data-class-picked="it.order &gt; 0 &amp;&amp; !d.show_cur">
+          <div class="mface"><img data-if="it.face != ''" data-attr-src="it.face"/></div>
+          <div class="minfo">
+            <div><span class="badge" data-if="it.order > 0" data-class-cur="d.show_cur">{{it.order}}</span><span>{{it.name}}</span></div>
+            <div class="small"><span class="label">LV</span><span class="sp">{{it.lv}}</span><img class="sp" data-if="it.ename != ''" data-attr-src="it.ename"/></div>
+            <div class="kv small"><span class="k">HP</span><span class="v hpv">{{it.hp}}/{{it.hpmax}}</span></div>
+            <div class="kv small"><span class="k">MP</span><span class="v mpv">{{it.mp}}/{{it.mpmax}}</span></div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="narrowonly">
+      <div class="nrow" data-for="it : d.slots" data-class-cur="it.cur"><span class="badge" data-class-off="it.empty" data-class-cur="it.cur">{{it.no}}</span><span class="nname dimtx" data-if="it.empty">EMPTY</span><span class="nname" data-if="!it.empty">{{it.name}}</span><span class="small sp" data-if="!it.empty">LV{{it.lv}}</span><span class="small hpv sp" data-if="!it.empty">{{it.hp}}</span><span class="small mpv sp" data-if="!it.empty">{{it.mp}}</span></div>
+      <h2 class="gap-v">파티 ({{d.count}}명)</h2>
+      <div class="nmem" nav="roster" data-attr-idx="it.i" data-for="it : d.roster" data-class-sel="it_index == d.cursor &amp;&amp; !d.done" data-class-picked="it.order &gt; 0 &amp;&amp; !d.show_cur">
+        <div class="mface"><img data-if="it.face != ''" data-attr-src="it.face"/></div>
+        <span class="badge" data-if="it.order > 0" data-class-cur="d.show_cur">{{it.order}}</span><span class="nname">{{it.name}}</span>
+        <div class="nnum small"><div><span class="label">LV</span><span class="sp">{{it.lv}}</span></div><div><span class="hpv">{{it.hp}}/{{it.hpmax}}</span><span class="mpv sp">{{it.mp}}/{{it.mpmax}}</span></div></div>
+      </div>
+    </div>
+    <div id="donebar" class="gap-v" data-if="d.done">선택 완료</div>
+    <div id="curbar" class="gap-v small" data-if="d.show_cur &amp;&amp; d.count > 1">지금 편성입니다. 고르면 1번부터 새로 짭니다.</div>
+  </div>
+  <div class="panel flat gap-v oldkeys"><div class="keys">
+    <span class="kb" key="ok"><span class="key">{{ 'ok' | key }}</span><span data-if="!d.done">고르기</span><span data-if="d.done">확인</span></span>
+    <span class="kb" key="clear"><span class="key">{{ 'clear' | key }}</span>이전</span>
+    <span class="kb nav" data-if="!d.done &amp;&amp; d.count > 1"><span class="key">◀▶</span>동료</span>
+  </div></div>
+</div>
+<fmbar/>
+</body></rml>

@@ -1,0 +1,21 @@
+<rml>
+<head><link type="text/rcss" href="ctl.rcss"/><title>settings</title></head>
+<body class="modal" data-model="ui">
+  <!-- 조작 설정(F1, 패드의 설정, 게임패드 BACK, 환경설정 화면의 '조작 설정'). 값은 저장 폴더의 ui.ini에 남는다. -->
+  <div class="panel">
+    <h1>조작 설정</h1>
+    <div class="row"><span>화면 패드</span><input id="first" type="checkbox" data-checked="pad_on" data-event-change="save"/></div>
+    <div class="row"><span>패드 크기</span><input type="range" min="50" max="200" step="5" data-value="pad_size"/></div>
+    <div class="row"><span>패드 투명도</span><input type="range" min="10" max="100" step="5" data-value="alpha" data-event-change="save"/></div>
+    <div class="row" data-if="gamepad"><span>게임패드</span><button data-event-click="open_binds">키 설정</button></div>
+    <div class="buttons">
+      <button data-event-click="open_edit">위치 편집</button>
+      <button data-event-click="reset">초기화</button>
+      <button data-event-click="close">닫기</button>
+    </div>
+    <div class="note">화면 패드는 필드에서 이동할 때 나온다. 메뉴는 항목을 바로 누르면 선택된다.</div>
+    <div class="mkeys" data-if="src == 0"><span class="mk">↑↓</span>이동<span class="mk">←→</span>값<span class="mk">Enter</span>선택<span class="mk">Esc</span>닫기</div>
+    <div class="mkeys" data-if="src == 2"><span class="mk">↑↓</span>이동<span class="mk">←→</span>값<span class="mk">{{pad_ok}}</span>선택<span class="mk">{{pad_back}}</span>닫기</div>
+  </div>
+</body>
+</rml>

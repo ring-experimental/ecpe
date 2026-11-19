@@ -1,0 +1,21 @@
+<rml><head><link type="text/rcss" href="base.rcss"/><link type="text/rcss" href="title.rcss"/>
+<!-- 첫 실행(장면 22, 0x10ef0). sub 0: 속도최적화 진행(pct), sub 1: 재시작 안내(msg) + 키 안내. -->
+<style>
+.box { width: 70%; max-width: 360dp; min-width: 200dp; }
+.gauge.time { height: 6dp; }
+.msg { text-align: center; }
+</style></head>
+<body data-model="title_boot">
+<div class="tapall" key="ok" data-if="d.sub != 0"></div>
+<div class="screen center">
+  <div class="box panel pop" data-if="d.sub == 0">
+    <div class="row-flex"><span class="grow">{{d.label}}</span><span class="num">{{d.pct}}%</span></div>
+    <div class="gauge time gap-v"><div class="fill" data-style-width="d.pct + '%'"></div></div>
+  </div>
+  <div class="box panel pop col-flex" style="border-color: #f2c84a;" data-if="d.sub != 0">
+    <div class="msg">{{d.msg}}</div>
+    <div class="sep"></div>
+    <div class="keys mid"><span class="kb" data-for="k : d.keys" data-attr-key="k.key"><span class="key">{{k.k | key}}</span>{{k.t}}</span></div>
+  </div>
+</div>
+</body></rml>

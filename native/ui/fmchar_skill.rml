@@ -1,0 +1,189 @@
+<rml><head><link type="text/rcss" href="base.rcss"/><link type="text/rcss" href="fmchar.rcss"/><link type="text/rcss" href="fmshell.rcss"/>
+<title>스킬</title>
+<style>
+/* 필드 메뉴 화면 2 스킬(원본 0x33d94). 원본은 분류 고르기 → 동작 고르기 → 목록 → 정보를 한 칸에서 번갈아 보였다.
+   여기서는 왼쪽에 캐릭터와 분류·단축키, 가운데 스킬 목록과 동작 버튼, 오른쪽에 늘 보이는 스킬 정보를 둔다.
+   지금 키가 가는 곳(상태 +0x10)은 강조 줄로 보이고, 나머지는 옅은 선택으로 남는다. */
+#main { flex: 1 1 0; display: flex; flex-direction: row; min-height: 0; }
+#left { width: 150dp; flex: 0 0 auto; }
+#mid { flex: 1 1 0; min-width: 0; margin-left: 6dp; }
+#right { width: 170dp; flex: 0 0 auto; margin-left: 6dp; }
+#head { display: flex; flex-direction: row; }
+#headface { flex: 0 0 auto; }
+#headtx { flex: 1 1 0; min-width: 0; margin-left: 6dp; }
+.facebox.mini { width: 40dp; height: 40dp; }
+.facebox.mini img { left: -12dp; top: -2dp; }
+#acts { display: flex; flex-direction: row; margin-top: 4dp; }
+.act { flex: 1 1 0; height: 18dp; line-height: 18dp; text-align: center; margin-left: 4dp; border: 1dp #5e5ebc; border-radius: 3dp; background-color: #1c2644; color: #9cb2d4; }
+.act:first-child { margin-left: 0; }
+.act.sel { decorator: horizontal-gradient(#3f78f0 #2a4ab8); color: #fff; border-color: #a8c4ff; }
+.act.idle { background-color: #2a3470; color: #fff; }
+.act.dis { color: #808080; background-color: #404040; border-color: #808080; }
+.hkrow { display: flex; flex-direction: row; height: 16dp; align-items: center; white-space: nowrap; }
+.hkrow .name { flex: 1 1 0; min-width: 0; overflow: hidden; }
+#hkpanel.wait { border-color: #ffd75e; }
+#iname { color: #fff; }
+#imp { color: #abfcff; }
+.tag { display: inline-block; font-size: 10dp; line-height: 12dp; padding: 0 3dp; margin-right: 3dp; border: 1dp #8c96e8; border-radius: 2dp; color: #cfd3ff; }
+#idesc { margin-top: 4dp; line-height: 16dp; }
+#info.focus { border-color: #f2c84a; }
+.panel.focus { border-color: #f2c84a; }
+
+/* 대상 고르기(상태 4) 창 */
+#tgtwrap { position: absolute; left: 0; top: 0; width: 100%; height: 100%; display: flex; justify-content: center; align-items: center; background-color: #070a1c80; }
+#tgt { width: 300dp; }
+.trow { display: flex; flex-direction: row; align-items: center; height: 34dp; padding: 0 5dp; margin-bottom: 2dp; border-radius: 2dp; border: 1dp #4a5296; }
+.trow.sel { decorator: horizontal-gradient(#3f78f0 #2a4ab8); border-color: #a8c4ff; }
+.trow.sel.sealed { decorator: none; background-color: #606060; border-color: #808080; }
+.trow .tface { flex: 0 0 auto; width: 30dp; height: 30dp; position: relative; overflow: hidden; }
+.trow .tface img { position: relative; left: -12dp; top: -2dp; }
+.trow .tname { width: 70dp; flex: 0 0 auto; margin-left: 6dp; }
+.trow .tg { flex: 1 1 0; min-width: 0; margin-left: 6dp; }
+
+body.narrow #main { flex-direction: column; }
+body.narrow #left .panel { padding: 4dp 6dp; }
+body.narrow #left .title { margin: -4dp -6dp 4dp -6dp; }
+body.narrow .facebox.mini { width: 28dp; height: 28dp; }
+body.narrow #headtx { flex: 0 0 auto; width: 70dp; }
+body.narrow #headhm { flex: 1 1 0; margin-left: 6dp; }
+body.narrow #cats h2 { display: none; }
+body.narrow #acts { margin-top: 2dp; }
+body.narrow .act { height: 15dp; line-height: 15dp; }
+body.narrow #left { width: auto; }
+/* 좁은 화면: 분류 세 줄을 가로 탭처럼 한 줄에 놓는다(높이를 아끼려고. 줄 모양은 vlist 그대로) */
+body.narrow #cats { display: flex; flex-direction: row; overflow: hidden; }
+body.narrow #cats .vrow { flex: 1 1 0; min-width: 0; margin: 0 0 0 2dp; padding: 0 3dp; font-size: 10dp; }
+body.narrow #cats .vrow:first-child { margin-left: 0; }
+body.narrow #cats .vval { margin-left: 2dp; }
+body.narrow #hkpanel { display: none; }
+body.narrow #mid { margin-left: 0; margin-top: 4dp; }
+body.narrow #right { display: none; }
+body.narrow.st6 #right { display: flex; width: auto; margin-left: 0; margin-top: 4dp; flex: 1 1 0; }
+body.narrow.st6 #mid { display: none; }
+body.narrow #tgt { width: 220dp; }
+/* 단축키 장착 대기(상태 5)에서는 3/6/9를 누르는 버튼이 필요하므로 좁은 화면에서도 단축키 칸을 보인다(목록은 접는다) */
+body.narrow.st5 #right { display: flex; width: auto; margin-left: 0; margin-top: 4dp; }
+body.narrow.st5 #info { display: none; }
+body.narrow.st5 #hkpanel { display: block; margin-top: 0; }
+body.narrow.st5 #hkpanel .hkrow, body.narrow.touch.st5 #hkpanel .hkrow { height: 16dp; margin-bottom: 0; }
+body.narrow.st5 #hkpanel h2 { display: none; }
+/* 터치: 작은 ◀ ▶와 동작 버튼, 단축키 줄을 손가락 크기로 */
+.tarrow { color: #ffd75e; }
+.title .sub { white-space: nowrap; }
+body.touch .tarrow { padding: 2dp 8dp; margin-left: 2dp; background-color: #2a3470; border: 1dp #8c96e8; border-radius: 3dp; }
+/* 캐릭터 넘기기는 상태 0·3에서만 원본이 받는다. 다른 상태에서는 버튼 모양을 빼고 흐리게 */
+body.touch .tarrow.dead { background-color: transparent; border-color: transparent; color: #5c6290; }
+body.touch .act { height: 24dp; line-height: 24dp; }
+body.touch .hkrow.hkwait { height: 26dp; margin-bottom: 2dp; padding: 0 4dp; border: 1dp #5e5ebc; border-radius: 3dp; background-color: #2a3470; }
+/* 필드 메뉴 틀 안(body.shell): 분류·동작 고르기 단계가 없다(restored/fm_shell.c fm_skill_normalize). 캐릭터는 위 캐릭터 띠가 보이고 바꾼다.
+   분류 셋은 목록 위 가로 탭(늘 눌린다), 목록은 늘 살아 있고(누르면 사용), 오른쪽 정보 창은 커서 스킬을 늘 보인다.
+   「단축키」는 버튼 띠의 보조 버튼이 3/6/9 대기까지 한 번에 간다. */
+body.shell .oldkeys, body.shell #left, body.shell #acts { display: none; }
+body.shell #mid { margin-left: 0; }
+#stabs { display: none; flex-direction: row; margin-bottom: 4dp; }
+body.shell #stabs { display: flex; }
+#stabs .tab { flex: 1 1 0; min-width: 0; text-align: center; white-space: nowrap; overflow: hidden; padding: 2dp 0; height: 16dp; margin-right: 2dp; }
+#stabs .tab:last-child { margin-right: 0; }
+#stabs .tab.hover { color: #fff; border-color: #ffffce; }
+#stabs .tab .n { color: #ffd75e; font-size: 10dp; margin-left: 3dp; }
+body.touch #stabs .tab { height: 20dp; line-height: 20dp; padding: 1dp 0; }
+#shmp { display: none; }
+body.shell #shmp { display: block; margin-bottom: 4dp; }
+body.shell #right { width: 168dp; }
+body.shell.narrow #main { flex-direction: column; }
+body.shell.narrow #stabs .tab { font-size: 10dp; }
+.hkrow.hover, .trow.hover { border-color: #ffffce; }
+/* 단축키 대기(상태 5)에는 3/6/9 버튼이 커져 오른쪽 단이 모자란다. HP/MP 칸은 접고 정보 창은 넘치는 글을 자른다 */
+body.shell.st5 #shmp { display: none; }
+body.shell #info { overflow: hidden; }
+</style></head>
+<body data-model="fmchar_skill" data-class-narrow="d.narrow" data-class-shell="d.shell" data-class-chars="d.chars" data-class-st6="d.state == 6" data-class-st5="d.state == 5">
+<div class="screen col-flex" data-class-narrow="d.narrow" data-class-dim="!d.shell">
+  <div id="main">
+    <div id="left" class="col-flex">
+      <div class="panel pop">
+        <div class="title">스킬<span class="sub" data-if="d.count > 1"><span class="tarrow" shoulder="prev" data-class-dead="d.state != 0 &amp;&amp; d.state != 3" data-attr-key="d.state == 0 || d.state == 3 ? 'left' : ''">◀</span> <span class="tarrow" shoulder="next" data-class-dead="d.state != 0 &amp;&amp; d.state != 3" data-attr-key="d.state == 0 || d.state == 3 ? 'right' : ''">▶</span></span></div>
+        <div id="head">
+          <div id="headface"><div class="facebox mini"><img data-if="d.face != ''" data-attr-src="d.face"/></div></div>
+          <div id="headtx">
+            <div class="outline">{{d.name}}</div>
+            <div><img data-if="d.ename != ''" data-attr-src="d.ename"/></div>
+            <div class="kv"><span class="k">LV</span><span class="v">{{d.lv}}</span></div>
+          </div>
+          <div id="headhm" class="narrowonly">
+            <div class="kv"><span class="k">HP</span><span class="v hpv">{{d.hp}}/{{d.hpmax}}</span></div>
+            <div class="kv"><span class="k">MP</span><span class="v mpv">{{d.mp}}/{{d.mpmax}}</span></div>
+          </div>
+        </div>
+        <div class="wideonly">
+        <div class="gline"><div class="kv"><span class="k">HP</span><span class="v hpv">{{d.hp}}/{{d.hpmax}}</span></div>
+          <div class="gauge hp"><div class="fill" data-style-width="d.hp_pct + '%'"></div></div></div>
+        <div class="gline"><div class="kv"><span class="k">MP</span><span class="v mpv">{{d.mp}}/{{d.mpmax}}</span></div>
+          <div class="gauge mp"><div class="fill" data-style-width="d.mp_pct + '%'"></div></div></div>
+        </div>
+      </div>
+      <div class="panel pop gap-v" data-class-focus="d.state == 0">
+        <h2 class="wideonly">분류</h2>
+        <vlist id="cats" for="it : d.cats" nav="cats" idx="it_index" sel="it_index == d.cat &amp;&amp; d.state == 0" idle="it_index == d.cat &amp;&amp; d.state != 0"
+               label="it.name" value="'x' + it.n"/>
+      </div>
+    </div>
+    <div id="mid" class="panel pop col-flex" data-class-focus="d.state == 2 || d.state == 5">
+      <div class="title">{{d.catname}}<span class="sub">{{d.n}}</span></div>
+      <div id="stabs"><div class="tab" data-for="it : d.cats" pick="skcat" data-attr-idx="it_index" data-class-sel="it_index == d.cat"><span>{{it.name}}</span><span class="n">{{it.n}}</span></div></div>
+      <vlist id="slist" class="grow" scroll="slist" for="it : d.items" nav="items" idx="it.i" sel="it.sel &amp;&amp; it.focus" idle="it.sel &amp;&amp; !it.focus" dis="it.unusable"
+             lead="it.hk > 0 ? it.hk : ''" label="it.name" value="'MP ' + it.mp" value-class="mpv" empty="d.n == 0" empty-text="-"/>
+      <div id="acts" data-if="d.cat == 0">
+        <div class="act" nav="acts" data-attr-idx="it_index" data-for="it : d.acts" data-class-sel="it.sel &amp;&amp; d.state == 1" data-class-idle="it.sel &amp;&amp; d.state != 1" data-class-dis="it.dis">{{it.name}}</div>
+      </div>
+    </div>
+    <div id="right" class="col-flex">
+    <div id="shmp" class="panel flat pop">
+      <div class="kv"><span class="k">HP</span><span class="v hpv">{{d.hp}}/{{d.hpmax}}</span></div>
+      <div class="kv"><span class="k">MP</span><span class="v mpv">{{d.mp}}/{{d.mpmax}}</span></div>
+    </div>
+    <div id="info" class="panel pop col-flex grow" data-class-focus="d.state == 6" data-attr-key="d.state == 6 ? 'ok' : ''">
+      <div class="title">스킬 정보</div>
+      <div data-if="d.info.ok">
+        <div><span id="iname" class="outline">{{d.info.name}}</span></div>
+        <div class="small gap-v"><span class="tag">MP {{d.info.mp}}</span><span class="tag" data-if="d.info.field">필드 사용</span><span class="tag" data-if="d.info.all">전체</span><span class="tag" data-if="d.info.combo">조합</span></div>
+        <div class="sep"></div>
+        <div id="idesc">{{d.info.desc}}</div>
+      </div>
+      <div class="dimtx" data-if="!d.info.ok">-</div>
+    </div>
+      <div id="hkpanel" class="panel pop gap-v" data-class-wait="d.state == 5">
+        <h2>단축키<span data-if="d.state == 5" class="gold"> · {{ '3' | key }}/{{ '6' | key }}/{{ '9' | key }} 장착</span></h2>
+        <div class="hkrow" data-class-hkwait="d.state == 5" data-for="it : d.hotkeys" data-attr-key="d.state == 5 ? it.key : ''"><span class="hk" data-class-off="it.name == ''">{{it.key}}</span><span class="name" data-if="it.name != ''">{{it.name}}</span><span class="name dimtx" data-if="it.name == ''">-</span></div>
+      </div>
+    </div>
+  </div>
+  <div class="panel flat gap-v oldkeys"><div class="keys">
+    <span class="kb" key="clear"><span class="key">{{ 'clear' | key }}</span>이전</span>
+    <span class="kb nav" data-if="d.state == 0"><span class="key">▲▼</span>분류</span>
+    <span class="kb nav" data-if="d.state == 1"><span class="key">◀▶</span>동작</span>
+    <span class="kb nav" data-if="d.state == 2 || d.state == 4"><span class="key">▲▼</span><span data-if="d.state == 2">스킬</span><span data-if="d.state == 4">대상</span></span>
+    <span class="kb" key="ok" data-if="d.state == 0 || d.state == 1 || d.state == 2"><span class="key">{{ 'ok' | key }}</span>선택</span>
+    <span class="kb" key="ok" data-if="d.state == 4"><span class="key">{{ 'ok' | key }}</span>사용</span>
+    <span class="kb nav" data-if="d.state == 5"><span class="key">{{ '3' | key }} {{ '6' | key }} {{ '9' | key }}</span>단축키 장착</span>
+    <span class="kb nav" data-if="(d.state == 0 || d.state == 3) &amp;&amp; d.count > 1"><span class="key">◀▶</span>캐릭터</span>
+  </div></div>
+
+  <div id="tgtwrap" data-if="d.state == 4">
+    <div id="tgt" class="panel pop">
+      <div class="title">{{d.info.name}}<span class="sub">MP {{d.mp}}/{{d.mpmax}}</span></div>
+      <div data-for="it : d.targets"><div class="trow" nav="targets" data-attr-idx="it.i" data-if="it.ok" data-class-sel="it.sel" data-class-sealed="it.sealed">
+        <div class="tface"><img data-if="it.face != ''" data-attr-src="it.face"/></div>
+        <div class="tname"><div>{{it.name}}</div><div><img data-if="it.ename != ''" data-attr-src="it.ename"/></div></div>
+        <div class="tg">
+          <div class="kv small"><span class="k">HP</span><span class="v hpv">{{it.hp}}/{{it.hpmax}}</span></div>
+          <div class="kv small"><span class="k">MP</span><span class="v mpv">{{it.mp}}/{{it.mpmax}}</span></div>
+        </div>
+      </div></div>
+    </div>
+  </div>
+  <div class="msgwrap" key="clear" data-if="d.msg == 10"><div class="msg">{{d.msg_text}}</div></div>
+  <div class="msgwrap" key="clear" data-if="d.msg == 11"><div class="msg info">{{d.msg_hk1}}<br/>{{d.msg_hk2}}</div></div>
+</div>
+<fmbar/>
+</body></rml>

@@ -1,0 +1,36 @@
+/* 영역 fmchar(필드 메뉴의 스킬·스테이터스·퀘스트·전투파티)가 같이 쓰는 배치. 공통 부품은 base.rcss에 있다. */
+
+/* 얼굴 그림 틀: 그림은 원본 1px = 1dp라서 키울 때는 문서가 img 폭·높이를 그림 크기의 배수로 준다. */
+/* 그림을 position: absolute로 두면 틀의 overflow: hidden이 자르지 않아 그림이 샌다. 그래서 relative로 옮겨 놓는다. */
+.facebox { position: relative; overflow: hidden; background-color: #0a0e28; border: 1dp #8c96e8; }
+.facebox img { position: relative; }
+
+/* 수치 줄: 이름표 왼쪽, 값 오른쪽 */
+.kv { display: flex; flex-direction: row; height: 14dp; white-space: nowrap; }
+.kv .k { flex: 1 1 0; color: #9aa2d8; }
+.kv .v { flex: 0 0 auto; text-align: right; color: #fff; }
+.hpv { color: #ffe054; }
+.mpv { color: #abfcff; }
+
+/* 게이지 줄: 이름표 + 값 + 아래 게이지 */
+.gline { margin-top: 3dp; }
+.gline .gauge { margin-top: 1dp; }
+
+/* 단축키 표시(원본 메뉴 스프라이트 프레임 2의 ③⑥⑨ 동그라미) */
+.hk { display: inline-block; width: 12dp; height: 12dp; line-height: 12dp; margin-right: 3dp; text-align: center; font-size: 10dp; color: #1a1050; background-color: #ffd75e; border-radius: 6dp; }
+.hk.off { background-color: #2a3470; color: #7c84b0; }
+
+/* 메시지 띠(원본 0x30cac: 붉은 상자) */
+.msgwrap { position: absolute; left: 0; top: 0; width: 100%; height: 100%; display: flex; justify-content: center; align-items: center; }
+.msg { padding: 8dp 24dp; background-color: #b10026f0; border: 2dp #1c2644; border-radius: 3dp; text-align: center; color: #fff; font-size: 16dp; line-height: 18dp; font-effect: outline(1dp #40000c); }
+.msg.info { border-color: #8c96e8; background-color: #161a3e; font-size: 12dp; line-height: 16dp; font-effect: none; }
+
+/* 좁은 화면(폭 400 미만)에서는 세로로 쌓는다. 같은 값을 넓은/좁은 배치에서 다르게 보일 때는 .wideonly/.narrowonly로 나눈다. */
+.screen.narrow { padding: 4dp 4dp; }
+.narrowonly { display: none; }
+body.narrow .narrowonly { display: block; }
+body.narrow .wideonly { display: none; }
+body.narrow .keys .key { margin-left: 4dp; }
+
+/* 눌러서 닫는 메시지 막: 누르는 동안 화면 전체가 누름 색으로 번쩍이지 않게 */
+.msgwrap.press { background-color: transparent; }

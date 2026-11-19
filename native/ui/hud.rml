@@ -1,0 +1,55 @@
+<rml><head><link type="text/rcss" href="base.rcss"/>
+<!-- 필드 HUD(restored/ui_dialog.c f_1054c, 새 UI에만 있다). 오른쪽 위에 늘 보이는 지역 미니맵, 그 왼쪽에 퀵세이브 버튼.
+     지도 그림은 원본 미니맵(0x10b8c)을 떼어 온 것이고 주인공 점(d.hx, d.hy, 그림 기준 px)은 여기서 얹는다.
+     미니맵을 누르면 원본 지도 화면(#), 퀵세이브는 지금 쓰는 슬롯에 묻지 않고 저장한다(키보드 F5).
+     pick만 써서(key/nav/action 없음) 화면 패드는 그대로 필드 패드로 남는다.
+     퀵세이브 밑의 작은 표지(#inc)는 조우율 향(restored/incense.c)이 켜져 있을 때만 뜬다: 종류와 남은 걸음. -->
+<style>
+#hud { position: absolute; right: 6dp; top: 6dp; display: flex; flex-direction: row; align-items: flex-start; }
+/* 퀵세이브는 지도 왼쪽 위에 둔다(지도 아래는 화면 패드의 메뉴 버튼 자리라 터치에서 겹친다) */
+/* 미니맵은 반투명(사용자 요청 2026-11-11): 밑의 필드가 비쳐 보이게 틀·지도 모두 옅게. 주인공 점만 또렷하게 둔다. 마우스를 올리면 진해진다 */
+#mapbox { position: relative; padding: 3dp; background-color: #0a0e2850; border: 1dp #4a529680; border-radius: 3dp; }
+#mapbox .place { display: block; font-size: 10dp; line-height: 12dp; color: #cfd3ffd0; text-align: center; white-space: nowrap; margin-bottom: 2dp; }
+#maparea { position: relative; }
+#map { display: block; opacity: 0.5; }
+#mapbox:hover #map { opacity: 0.9; }
+#mapbox:hover { background-color: #0a0e28b0; }
+@keyframes hero-blink { 0% { opacity: 1; } 50% { opacity: 1; } 51% { opacity: 0.15; } 100% { opacity: 0.15; } }
+#hero { position: absolute; width: 5dp; height: 5dp; box-sizing: border-box; background-color: #ff5a3c; border: 1dp #ffffff; border-radius: 1dp; animation: 0.6s infinite hero-blink; }
+#qsave { padding: 0 8dp; height: 18dp; line-height: 18dp; font-size: 11dp; color: #f4f6ff; background-color: #161a3ee0; border: 1dp #8c96e8; border-radius: 3dp; white-space: nowrap; }
+#qsave:hover { border-color: #ffffce; }
+#qsave.dis { color: #7c84b0; border-color: #4a5296; }
+#qsave .k { margin-right: 4dp; color: #ffd75e; }
+body.touch #qsave { height: 24dp; line-height: 24dp; padding: 0 10dp; font-size: 12dp; }
+body.touch #qsave .k { display: none; }
+#mapbox .mk { margin-right: 4dp; padding: 0 3dp; color: #ffd75e; border: 1dp #8c96e880; border-radius: 2dp; }
+body.touch #mapbox .mk { display: none; }
+#fkeys { position: absolute; right: 6dp; bottom: 5dp; padding: 2dp 6dp; background-color: #0a0e2880; border-radius: 3dp; white-space: nowrap; }
+body.touch #fkeys { display: none; }
+#side { display: flex; flex-direction: column; align-items: flex-end; margin-right: 4dp; }
+#inc { margin-top: 3dp; padding: 0 6dp; height: 14dp; line-height: 14dp; font-size: 10dp; color: #d8f4ff; background-color: #10143ae0; border: 1dp #5aa8d8; border-radius: 3dp; white-space: nowrap; }
+#inc.lure { color: #ffe6d8; border-color: #e8845a; }
+#inc .dot { display: inline-block; width: 5dp; height: 5dp; margin-right: 4dp; border-radius: 3dp; background-color: #5ad0ff; }
+#inc.lure .dot { background-color: #ff8a5c; }
+#msg { margin-top: 4dp; }
+#msg .toast { background-color: #12163aee; border: 1dp #f2c84a; border-radius: 4dp; padding: 4dp 14dp; white-space: nowrap; }
+</style></head>
+<body data-model="hud">
+<div id="hud">
+  <div id="side">
+    <!-- 게임패드: 필드에서 원본이 쓰지 않는 버튼(원본 9번 키에 묶인 것, 기본 오른쪽 스틱 누르기)을 빌린다(padhot, host/ui.h) -->
+    <div id="qsave" pick="qsave" idx="0" padhot="nine" data-class-dis="!d.can_save"><span class="k konly">F5</span><span class="k ponly">{{'nine' | padkey}}</span><span>퀵세이브</span></div>
+    <div id="inc" data-if="d.inc_mode != 0" data-class-lure="d.inc_mode == 2"><span class="dot"></span><span>{{d.inc_mode == 2 ? '유혹' : '정적'}} {{d.inc_left}}</span></div>
+    <div id="msg" data-if="d.msg != ''"><div class="toast"><span>{{d.msg}}</span></div></div>
+  </div>
+  <div id="mapbox" data-if="d.has_map" pick="hudmap" idx="0">
+    <span class="place"><span class="mk">{{'hash' | key}}</span>{{d.place}}</span>
+    <div id="maparea" data-style-width="d.mw + 'dp'" data-style-height="d.mh + 'dp'">
+      <img id="map" data-if="d.map != ''" data-attr-src="d.map" data-style-width="d.mw + 'dp'" data-style-height="d.mh + 'dp'"/>
+      <div id="hero" data-if="d.hx &gt;= 0" data-style-left="(d.hx - 2) + 'dp'" data-style-top="(d.hy - 2) + 'dp'"></div>
+    </div>
+  </div>
+</div>
+<!-- 필드 조작 안내(키보드·게임패드. 터치는 화면 패드가 그 버튼이다). 원작에는 없던 표시: 메뉴가 있다는 것부터 알 수 없었다(사용자 보고 2026-11-12) -->
+<div id="fkeys" class="keys"><span class="kb"><span class="key">{{'ok' | key}}</span>조사·대화</span><span class="kb"><span class="key">{{'clear' | key}}</span>메뉴</span></div>
+</body></rml>

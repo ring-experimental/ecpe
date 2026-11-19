@@ -1,0 +1,14 @@
+<rml><head><link type="text/rcss" href="base.rcss"/>
+<!-- 타이틀 「PRESS ANY KEY」(장면 2, 0xe85c). 그림은 원본 그대로이고 이 알림만 새로 그린다. 원작처럼 깜빡인다.
+     아무 키나 누르면 넘어가므로 터치는 화면 전체(tapall)로 받는다. -->
+<style>
+#p { position: absolute; left: 0; right: 0; top: 247dp; display: flex; justify-content: center; }
+#p .panel { padding: 2dp 14dp; border-radius: 9dp; border-color: #6a8cf0; background-color: #1a2a78e8; }
+#p span { color: #fff; font-effect: outline(1dp #0a1450); }
+@keyframes breathe { 0% { opacity: 1; } 60% { opacity: 1; } 80% { opacity: 0.25; } 100% { opacity: 1; } }
+#p .panel { animation: 1.5s linear-in-out infinite breathe; }
+</style></head>
+<body data-model="title_press">
+<div class="tapall" key="ok"></div>
+<div id="p"><div class="panel fade"><span>{{d.t}}</span></div></div>
+</body></rml>

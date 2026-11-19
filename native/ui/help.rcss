@@ -1,0 +1,15 @@
+/* 도움말(옵션과 타이틀 메인 메뉴가 같이 쓴다, 값은 restored/help.c help_emit).
+   왼쪽 항목 색인(.hidx, <vlist size="s">: 지금 항목은 idle 줄), 오른쪽 글 상자(.hpage, scroll="help": 끌기·휠·↑↓·게임패드 오른쪽 스틱). 좁은 화면은 색인을 감춘다. */
+.hidx { width: 112dp; margin-right: 8dp; flex: 0 0 auto; }
+body.narrow .hidx { display: none; }
+.hpage { position: relative; padding: 6dp 10dp; background-color: #0a0e2880; border-radius: 2dp; overflow-y: auto; min-height: 0; }
+body.narrow .hpage { padding: 4dp 6dp; }
+.hpage .p { line-height: 18dp; margin-bottom: 4dp; word-break: break-word; }
+.hpage .p.h { margin-top: 6dp; color: #ffd75e; }
+.hpage .p.h:first-child { margin-top: 0; }
+.hpage .p.b { color: #fff; }
+.hpage .p.s { padding-left: 12dp; color: #cfd3ff; margin-bottom: 1dp; }
+.hpage scrollbarvertical { width: 4dp; margin-left: 2dp; }
+.hpage scrollbarvertical slidertrack { background-color: #10143280; }
+.hpage scrollbarvertical sliderbar { background-color: #8c96e8; border-radius: 2dp; }
+.hpage scrollbarvertical sliderarrowdec, .hpage scrollbarvertical sliderarrowinc { width: 0; height: 0; }

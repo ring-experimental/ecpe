@@ -1,0 +1,17 @@
+# 사람이 읽는 C로 옮긴 함수. 파일 오프셋과 위치. `wrap`이면 원본은 orig_f_<오프셋>으로 남는다.
+3892c battle.c
+205c4 battle.c wrap
+381a0 fieldbg.c
+38418 backdrop.c wrap
+2f3e4 camera.c wrap
+ae60 sound.c wrap
+adf0 sound.c wrap
+11aec sound.c wrap
+11b90 sound.c wrap
+aeb0 sound.c wrap
+1cb88 rates.c wrap
+25ee8 rates.c wrap
+67a8 rates.c wrap
+2ee2c widemap.c wrap
+2f7c4 widemap.c wrap
+cc94 widemap.c wrap

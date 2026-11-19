@@ -1,0 +1,25 @@
+<rml><head><link type="text/rcss" href="base.rcss"/><link type="text/rcss" href="dialog.rcss"/>
+<!-- 획득 알림(0x11594 → 0x23578: "기가리미트 획득", "파티 GP 1획득", " 골드 획득")과 전투 뒤 레벨업 알림(0x3312c, 금색).
+     원본은 화면 폭 - 128의 띠 가운데 글(키를 누르면 닫힘). 위쪽 가운데 토스트로 띄운다. 여러 줄 글(레벨업)은 줄마다, 탭으로 나뉜 두 칸은 나란히. -->
+<!-- 터치: 화면을 누르면 닫는다(원본은 키 입력으로 닫힌다. 누른 키는 OK로 보낸다). -->
+<style>
+#dim { position: absolute; left: 0; top: 0; width: 100%; height: 100%; background-color: #070a1c60; }
+/* 폭은 restored/ui_dialog.c가 글을 재서 넘긴다(d.w). 줄은 원본이 이미 나눴으므로 보통은 그대로 두고,
+   화면 폭의 90%보다 긴 줄만 상자 안에서 감싼다. 빈 줄(문단 사이)도 한 줄 높이를 둔다. */
+.toast { box-sizing: border-box; }
+.nl { white-space: pre-wrap; min-height: 14dp; }
+.t2 { margin-left: 16dp; }
+.lv { color: #ffd75e; }
+#ok { margin-top: 2dp; }
+/* 레벨업 알림은 스테이터스 화면 위에 뜬다. 창 제목 띠를 가리지 않게 화면 가운데에 둔다. */
+.stage-top.mid { top: 130dp; }
+</style></head>
+<body data-model="dialog_notice">
+<div class="tapall" key="ok"></div>
+<div id="dim" data-if="d.dim"></div>
+<div class="stage-top" data-class-mid="d.levelup">
+  <div class="toast pop" data-class-gold="d.levelup" data-style-width="d.w + 'dp'">
+    <div class="nl" data-for="it : d.lines"><span data-style-color="d.levelup && it_index == 0 ? '#ffd75e' : d.color">{{it.t}}</span><span class="t2" data-if="it.t2 != ''">{{it.t2}}</span></div>
+  </div>
+</div>
+</body></rml>

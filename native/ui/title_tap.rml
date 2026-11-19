@@ -1,0 +1,6 @@
+<rml><head><link type="text/rcss" href="base.rcss"/>
+<!-- 로고(장면 1, 0xe5e4). 그림은 원본이 그리고, 아무 키나 눌러 넘기는 것을 터치로 하도록 화면 전체를 누를 곳으로 덮는다. -->
+</head>
+<body data-model="title_tap">
+<div class="tapall" key="ok"></div>
+</body></rml>

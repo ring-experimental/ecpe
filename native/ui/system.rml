@@ -1,0 +1,358 @@
+<rml><head><link type="text/rcss" href="base.rcss"/><link type="text/rcss" href="help.rcss"/><link type="text/rcss" href="fmshell.rcss"/>
+<!-- 필드 메뉴 화면 7(옵션)과 타이틀 이어하기 슬롯. 값은 restored/ui_system.c가 채운다.
+     d.mode: 1 필드 메뉴, 2 타이틀 이어하기(타이틀 그림 위에 슬롯만), 3 이벤트 저장(바로 저장 슬롯).
+     d.sub: 0 목록, 1 저장/불러오기(d.stage 0 고르기, 1 저장 슬롯, 2 불러오기 슬롯), 2 환경설정, 3 도움말, 4 종료 확인.
+     옵션 목록은 원본의 「저장/불러오기」 한 칸을 「저장」「불러오기」 두 줄로 나눠 다섯 줄이다(d.lcur 0~4, ui_system.c f_34f48).
+     고르기 단계(stage 0)와 예/아니오는 래퍼가 원본 키를 덧보내 건너뛴다(사용자 결정: 누르면 바로 저장·불러오기).
+     넓은 화면에서는 왼쪽에 옵션 목록을 늘 두고 오른쪽에 하위 화면(목록에서는 고른 항목의 미리보기)을 크게 보인다. -->
+<style>
+#top { display: flex; flex-direction: row; align-items: center; height: 22dp; padding: 0 8dp; }
+#top .crumb { flex: 1 1 0; white-space: nowrap; overflow: hidden; }
+#top .crumb span { margin-right: 4dp; }
+#top .arrow { color: #8c96e8; }
+#mid { margin-top: 6dp; }
+#side { width: 150dp; margin-right: 8dp; }
+#keys { margin-top: 6dp; height: 20dp; display: flex; align-items: center; }
+.no { flex: 0 0 auto; width: 14dp; color: #8c94c4; font-size: 10dp; }
+
+/* 슬롯 카드: 넓으면 가로 셋, 좁으면 세로 셋 */
+.cards { display: flex; flex-direction: row; }
+.card { flex: 1 1 0; min-width: 0; margin-left: 6dp; box-sizing: border-box; padding: 6dp 8dp; border: 1dp #4a5296; border-radius: 3dp; background-color: #10143290; display: flex; flex-direction: column; }
+.card:first-child { margin-left: 0; }
+.card .head { display: flex; flex-direction: row; align-items: center; height: 12dp; }
+.card .badge { font-size: 10dp; line-height: 12dp; color: #9aa2d8; }
+.card .loc { margin-top: 6dp; font-size: 16dp; line-height: 18dp; color: #fff; }
+.card .time { margin-top: 4dp; color: #ffd75e; }
+.card .empty { color: #7c84b0; text-align: center; }
+.card .fill { flex: 1 1 0; }
+.card.sel { decorator: vertical-gradient(#3f78f0 #2a4ab8); border-color: #a8c4ff; }
+.card.sel .badge { color: #e8eeff; }
+.card.sel .empty { color: #dfe6ff; }
+.card.big { padding: 10dp 12dp; }
+.card.big .loc { margin-top: 0; text-align: center; }
+.card.big .time { margin-top: 8dp; text-align: center; font-size: 16dp; line-height: 18dp; }
+.card.big .head { height: 14dp; }
+.card.big .badge { font-size: 12dp; line-height: 14dp; width: 18dp; height: 14dp; text-align: center; border-radius: 2dp; background-color: #2a3470; color: #fff; }
+.card.big.sel .badge { background-color: #ffd75e; color: #1a1050; }
+.card.big.blank .empty { font-size: 16dp; line-height: 18dp; }
+.cards.pv { height: 96dp; }
+.cards.pv2 { height: 84dp; }
+/* 미리보기 카드(작은 카드)의 지명은 낱말 사이에서 줄을 바꾼다(한 줄로 두면 「수도 아멜」처럼 잘렸다). 세로 카드(cards.v)는 아래 규칙이 이긴다 */
+.cards.pv .card .loc, .cards.pv2 .card .loc { font-size: 14dp; line-height: 16dp; white-space: normal; }
+.cards.v { flex-direction: column; }
+.cards.v .card { margin-left: 0; margin-top: 4dp; flex: 0 0 auto; height: 40dp; padding: 4dp 8dp; }
+.cards.v .card:first-child { margin-top: 0; }
+.cards.v .card .loc { margin-top: 1dp; font-size: 12dp; line-height: 14dp; }
+.cards.v .card .time { margin-top: 0; font-size: 10dp; line-height: 12dp; }
+.cards.v .card .head { display: none; }
+.cards.v .card .row-v { display: flex; flex-direction: row; align-items: center; }
+.cards.v { height: auto; }
+.cards.v .card.big { flex-direction: row; align-items: center; height: auto; flex: 1 1 0; padding: 2dp 8dp; }
+.cards.v .card.big .head { display: flex; width: 22dp; flex: 0 0 auto; }
+.cards.v .card.big .fill { display: none; }
+.cards.v .card.big .info { flex: 1 1 0; display: flex; flex-direction: row; align-items: center; }
+.cards.v .card.big .loc { flex: 1 1 0; text-align: left; font-size: 12dp; }
+.cards.v .card.big .time { flex: 0 0 auto; margin: 0 0 0 6dp; font-size: 12dp; line-height: 14dp; }
+.cards.v .card.big .empty { flex: 1 1 0; font-size: 12dp; }
+
+/* 하위 화면 본문 */
+#main .body { margin-top: 2dp; }
+.choice { display: flex; flex-direction: row; margin-bottom: 8dp; }
+.choice .menu-item { flex: 1 1 0; margin-left: 6dp; text-align: center; height: 26dp; line-height: 26dp; font-size: 16dp; }
+.choice .menu-item:first-child { margin-left: 0; }
+.choice .menu-item.dis { color: #6c7298; }
+.choice .menu-item.sel.dis { color: #b4bad8; decorator: horizontal-gradient(#4a5288 #363c6c); border-color: #7c84b0; }
+.totalbar { display: flex; flex-direction: row; align-items: center; height: 18dp; margin-bottom: 6dp; padding: 0 6dp; background-color: #0a0e2880; border-radius: 2dp; }
+.totalbar .grow span { }
+
+/* 환경설정: 이름(vlist 줄) / ◀ 값 ▶ / 단계 점은 줄 안쪽 내용 */
+/* 이름 칸(vlist .vtx)은 「타이핑」 세 글자가 늘 보이게 최소 폭을 두고, 값 칸이 먼저 줄어든다(좁은 틀 안에서 이름이 「사운」으로 잘렸다) */
+.cfg .vtx { min-width: 40dp; }
+.cfg .vbox { flex: 0 1 110dp; min-width: 56dp; display: flex; flex-direction: row; align-items: center; }
+.cfg .v { flex: 1 1 0; text-align: center; color: #fff; }
+.cfg .ar { flex: 0 0 auto; width: 12dp; text-align: center; color: #ffd75e; }
+.cfg .dots { flex: 0 0 auto; width: 60dp; justify-content: flex-end; margin-left: 8dp; display: flex; flex-direction: row; }
+.cfg .dot { flex: 0 0 auto; width: 10dp; height: 4dp; margin-left: 2dp; background-color: #2a3470; border-radius: 1dp; }
+.cfg .dot.on { background-color: #ffd75e; }
+.cfg.mini .vbox { flex-basis: 60dp; min-width: 40dp; }
+/* 줄이 9개(원작 4 + 원작에 없는 5)라 두 줄 카드 높이로는 패널을 넘는다. 낮추고, 그래도 넘치면 .cfgwrap이 넘긴다 */
+.cfg .v-l .vrow { height: 22dp; }
+body.touch .cfg .v-l .vrow { height: 28dp; }
+.cfg .dots.none .dot { background-color: #00000000; }
+/* 가장 긴 이름 「세이브 데이터」가 다 보이게(값 칸이 먼저 줄어든다) */
+.cfg .v-l .vtx { min-width: 92dp; }
+.cfg .v.obtn { flex: 0 1 auto; margin: 0 auto; padding: 0 10dp; height: 16dp; line-height: 16dp; background-color: #2a3470; border: 1dp #8c96e8; border-radius: 3dp; }
+.cfg .vrow.sel .v.obtn { color: #2a1a00; decorator: horizontal-gradient(#ffe37a #f2c84a); border-color: #fff4c0; }
+.cfg .okey { margin-left: 5dp; padding-left: 5dp; border-left: 1dp #7a5a10; font-size: 10dp; }
+body.touch .cfg .okey { display: none; }
+body.touch .cfg .v.obtn { height: 22dp; line-height: 22dp; }
+/* 빠듯한 폭: 값 칸이 56dp까지 줄어든다. 단추는 글만 */
+body.tight .cfg .v.obtn { padding: 0 4dp; }
+body.tight .cfg .okey { display: none; }
+/* 빠듯한 폭에서는 이름을 작은 글로(「세이브 데이터」 ≈ 65dp): 터치의 ◀ ▶(값 칸 최소 72dp)까지 한 줄에 든다 */
+body.tight .cfg .v-l .vtx { min-width: 66dp; }
+body.tight .cfg .v-l .vlabel { font-size: 10dp; }
+
+/* 도움말 */
+#help { display: flex; flex-direction: row; }
+.pager { display: flex; flex-direction: row; align-items: center; margin-top: 6dp; height: 14dp; }
+.pager .ar { flex: 0 0 auto; width: 16dp; text-align: center; color: #ffd75e; }
+.pager .ar.off { color: #3a4070; }
+.pager .gauge { flex: 1 1 0; margin: 0 6dp; }
+.pager .pn { flex: 0 0 auto; width: 44dp; text-align: right; }
+
+/* 대화 상자(예/아니오, 메시지) */
+.dlgw { position: absolute; left: 0; top: 0; width: 100%; height: 100%; display: flex; justify-content: center; align-items: center; background-color: #070a1c80; }
+.dlgw.press { background-color: #070a1c80; } /* 막 전체가 누름 색으로 번쩍이지 않게 */
+#dlg .panel { width: 240dp; padding: 10dp 12dp; }
+#dlg .q { text-align: center; margin: 6dp 0 10dp 0; }
+#dlg .btns { display: flex; flex-direction: row; justify-content: center; }
+#dlg .btn { width: 80dp; margin: 0 4dp; text-align: center; height: 20dp; line-height: 20dp; }
+#dlg .msg { text-align: center; margin: 8dp 0; }
+
+/* 미리보기의 총 시간 */
+.bigtime { margin-top: 30dp; text-align: center; }
+.bigtime .big { color: #ffd75e; }
+
+/* 터치·패드 (host/ui.h "터치"): 환경설정 ◀ ▶ 값, 도움말 쪽 넘기기, 조작 설정 버튼 */
+.cfg .arb { display: block; width: 100%; text-align: center; }
+.cfg .arb.hid { opacity: 0; }
+.setrow { display: flex; flex-direction: row; align-items: center; margin-top: 8dp; }
+.setbtn { white-space: nowrap; flex: 0 0 auto; padding: 0 10dp; height: 22dp; line-height: 22dp; color: #fff; background-color: #2a3470; border: 1dp #8c96e8; border-radius: 3dp; }
+.sethint { margin-left: 8dp; color: #9aa2d8; font-size: 10dp; }
+.setbtn.gapl { margin-left: 14dp; }
+.cfgwrap { flex: 1 1 0; min-height: 0; overflow-y: auto; }
+.cfgwrap scrollbarvertical { width: 3dp; }
+.cfgwrap scrollbarvertical sliderbar { background-color: #8c96e8a0; border-radius: 2dp; }
+.sethint.padh { display: none; }
+body.pad .sethint.kbd { display: none; }
+body.pad .sethint.padh { display: inline; }
+body.touch .sethint { display: none; }
+body.touch .cfg .vbox { flex-basis: 120dp; min-width: 72dp; }
+body.touch .cfg .ar { width: 26dp; }
+body.touch .cfg .arb { height: 24dp; line-height: 24dp; background-color: #2a3470; border: 1dp #8c96e8; border-radius: 3dp; color: #fff; }
+body.touch .cfg .arb.hid { opacity: 0.35; }
+body.touch .pager { height: 26dp; }
+body.touch .pager .ar { width: 28dp; height: 24dp; line-height: 24dp; background-color: #2a3470; border: 1dp #8c96e8; border-radius: 3dp; color: #fff; }
+body.touch .pager .ar.off { opacity: 0.35; }
+body.touch #dlg .btn { height: 26dp; line-height: 26dp; }
+body.touch #keys { height: 26dp; }
+
+/* 좁은 화면 */
+body.narrow #side { display: none; }
+body.narrow #top .tlabel { display: none; }
+body.narrow #top .crumb .root { display: none; }
+body.narrow #top .crumb .root:first-child { display: inline-block; }
+body.narrow #top .crumb .root.deep { display: none; }
+body.narrow .keys .wide { display: none; }
+/* 터치에서만(tonly) / 터치가 아닐 때만(ttnot) 보이는 키 안내 */
+.tonly { display: none; }
+body.touch .tonly { display: inline; }
+body.touch .ttnot { display: none; }
+body.narrow #side.only { display: block; width: auto; margin-right: 0; flex: 1 1 0; }
+body.narrow #main.pv { display: none; }
+
+body.narrow #dlg .panel { width: 200dp; }
+body.narrow .choice .menu-item { font-size: 12dp; }
+body.narrow .cfg .dots { display: none; }
+body.narrow .cfg .vbox { flex-basis: 80dp; }
+
+/* 터치 버튼(26dp 둘)이 들어갈 폭: 위의 터치 규칙보다 뒤에 와야 이긴다 */
+body.touch.narrow .cfg .vbox { flex-basis: 124dp; }
+
+/* 빠듯한 폭(body.tight, ui_system.c): 좁은 배치(narrow)는 아니지만 오른쪽 패널이 좁다(틀 안에서는 레일 + 옵션 목록이 자리를 차지해
+   폭 512에서 약 230dp, 400에서 약 125dp). 슬롯 카드는 가로 셋이면 「제라노스」 같은 낱말이 카드를 벗어나므로 세로로 쌓고(cards.v),
+   한 줄에 이름과 시간이 같이 들어가지 않으니 시간을 이름 아래로 내린다. 환경설정은 단계 점과 키 글자를 빼고 단추를 다음 줄로 넘긴다. */
+body.tight .cards.v .card.big .info { flex-direction: column; align-items: flex-start; justify-content: center; }
+body.tight .cards.v .card.big .loc { flex: 0 0 auto; width: 100%; white-space: nowrap; overflow: hidden; }
+body.tight .cards.v .card.big .time { margin: 1dp 0 0 0; font-size: 10dp; line-height: 12dp; }
+body.tight .cards.v .card .loc { white-space: nowrap; overflow: hidden; }
+body.tight .cfg .dots { display: none; }
+body.tight .sethint { display: none; }
+body.tight .setrow { flex-wrap: wrap; margin-top: 4dp; }
+body.tight .setrow .setbtn, body.tight .setrow .setbtn.gapl { margin: 4dp 6dp 0 0; padding: 0 5dp; height: 20dp; line-height: 20dp; font-size: 10dp; }
+
+/* 필드 메뉴 틀 안(모드 1, body.shell): 머리 띠(옵션 > … / Total time)는 빼고(시간은 레일에 있다) 목록 + 패널만, 키 안내는 고정 버튼 띠 */
+body.shell #top, body.shell #keys { display: none; }
+/* 틀 안의 대화 막(예/아니오, 메시지)은 내용 자리만 덮는다(.fmarea): 왼쪽 목록·레일·버튼 띠는 그대로 눌린다 */
+body.shell .dlgw.fmarea { left: 260dp; } /* 넓으면 옵션 목록(120dp)도 비켜 덮는다: 확인 중에도 목록 줄을 누르면 그 줄로(ui_system.c) */
+body.shell.narrow .dlgw.fmarea { left: 40dp; }
+body.shell #mid { margin-top: 0; }
+body.shell #side { width: 120dp; }
+body.shell.narrow #side.only { width: auto; }
+
+/* 타이틀 이어하기: 타이틀 그림(로고, 바탕) 위에 슬롯 카드만 */
+#title { position: absolute; left: 0; top: 0; width: 100%; height: 100%; }
+#title .cards { position: absolute; left: 24dp; right: 24dp; top: 140dp; height: 112dp; }
+#title .card { background-color: #161a3ef0; border-color: #8c96e8; }
+#title .card.sel { decorator: vertical-gradient(#3f78f0 #2a4ab8); border-color: #ffd75e; }
+#title .tkeys { position: absolute; left: 24dp; right: 24dp; top: 262dp; height: 18dp; display: flex; justify-content: center; align-items: center; }
+#title .tkeys .keys { padding: 2dp 8dp; background-color: #10143290; border-radius: 3dp; }
+body.narrow #title .cards { left: 14dp; right: 14dp; top: 134dp; height: 128dp; }
+body.narrow #title .tkeys { top: 268dp; }
+</style></head>
+<body data-model="system" data-class-narrow="d.narrow" data-class-tight="d.tight" data-class-shell="d.shell">
+
+<!-- ===== 타이틀 이어하기(모드 2) ===== -->
+<div id="title" data-if="d.mode == 2">
+  <div class="cards" data-class-v="d.narrow">
+    <div class="card big pop" data-for="s : d.slots" nav="slot" data-attr-idx="it_index" data-class-sel="it_index == d.cur" data-class-blank="!s.used">
+      <div class="head"><span class="badge">{{s.no}}</span></div>
+      <div class="fill"></div>
+      <div data-if="s.used" class="info"><div class="loc nowrap">{{s.name}}</div><div class="time">{{s.time}}</div></div>
+      <div class="empty" data-if="!s.used">{{d.empty}}</div>
+      <div class="fill"></div>
+    </div>
+  </div>
+  <div class="tkeys"><div class="keys">
+    <span data-if="d.pop == 0"><span class="nav kb"><span class="key">{{d.narrow ? '↑↓' : '←→'}}</span>슬롯</span><span class="kb" key="ok"><span class="key">{{'ok' | key}}</span>{{d.t_load}}</span><span class="kb" key="clear"><span class="key">{{'clear' | key}}</span>이전</span></span>
+    <span data-if="d.pop == 1"><span class="nav kb"><span class="key">←→</span>선택</span><span class="kb" key="ok"><span class="key">{{'ok' | key}}</span>확인</span></span>
+  </div></div>
+</div>
+
+<!-- ===== 필드 메뉴(모드 1)·이벤트 저장(모드 3) ===== -->
+<div class="screen col-flex" data-if="d.mode != 2" data-class-dim-soft="!d.shell">
+  <div id="top" class="panel">
+    <div class="crumb">
+      <span class="root" data-if="d.mode == 1" data-class-deep="d.sub != 0 && d.sub != 4">{{d.t_opt}}</span>
+      <span class="arrow root" data-if="d.mode == 1 && d.sub != 0 && d.sub != 4">›</span>
+      <span class="gold" data-if="d.sub == 1 && d.stage == 1 && d.mode == 1">{{d.t_save}}</span>
+      <span class="gold" data-if="d.sub == 1 && d.stage == 2 && d.mode == 1">{{d.t_load}}</span>
+      <span data-if="d.sub == 2">{{d.t_cfg}}</span>
+      <span data-if="d.sub == 3">{{d.t_help}}</span>
+    </div>
+    <span class="label small tlabel">{{d.t_total}}</span><span class="num gap">{{d.total}}</span>
+  </div>
+
+  <div id="mid" class="row-flex grow">
+    <!-- 옵션 목록(필드 메뉴에서만). 좁은 화면에서는 목록 화면(0, 4)에서만 보인다. -->
+    <div id="side" class="panel pop col-flex" data-if="d.mode == 1" data-class-only="d.sub == 0 || d.sub == 4">
+      <div class="title">{{d.t_opt}}</div>
+      <vlist for="it : d.items" nav="items" pick="opt" idx="it_index" label="it.name" dis="it.dis"
+             sel="it_index == d.lcur &amp;&amp; d.sub == 0" idle="it_index == d.lcur &amp;&amp; d.sub != 0"/>
+    </div>
+
+    <!-- 오른쪽 본문 -->
+    <div id="main" class="panel pop grow col-flex" data-class-pv="d.sub == 0 || d.sub == 4">
+
+      <!-- 0/4: 고른 항목 미리보기 -->
+      <div data-if="d.sub == 0 || d.sub == 4" class="grow col-flex">
+        <div class="title">{{d.lname}}</div>
+        <div data-if="d.lcur == 0 || d.lcur == 1" class="body">
+          <div class="cards pv" data-class-v="d.tight"><div class="card" data-for="s : d.slots">
+            <div class="head"><span class="badge">{{s.no}}</span></div>
+            <div data-if="s.used"><div class="loc nowrap">{{s.name}}</div><div class="time">{{s.time}}</div></div>
+            <div class="fill" data-if="!s.used"></div><div class="empty" data-if="!s.used">{{d.empty}}</div><div class="fill" data-if="!s.used"></div><div class="fill" data-if="!s.used"></div>
+          </div></div>
+        </div>
+        <div data-if="d.lcur == 2" class="body cfg mini">
+          <vlist for="r : d.cfg" label="r.name"><div class="vbox"><span class="v">{{r.val}}</span></div>
+            <div class="dots" data-class-none="r.lvmax == 0"><div class="dot" data-class-on="r.lvmax > 1 ? r.lv >= 0 : r.lv >= 1"></div><div class="dot" data-if="r.lvmax > 1" data-class-on="r.lv >= 1"></div><div class="dot" data-if="r.lvmax > 1" data-class-on="r.lv >= 2"></div><div class="dot" data-if="r.lvmax > 1" data-class-on="r.lv >= 3"></div><div class="dot" data-if="r.lvmax > 1" data-class-on="r.lv >= 4"></div></div>
+          </vlist>
+        </div>
+        <div data-if="d.lcur == 3" class="body">
+          <vlist for="h : d.hsections" label="h.t"/>
+        </div>
+        <div data-if="d.lcur == 4" class="body bigtime">
+          <div class="label">{{d.t_total}}</div><div class="big gap-v">{{d.total}}</div>
+        </div>
+        <!-- 프리미엄 상점(restored/ui_premium.c): 미리보기와 들어가기 단추 -->
+        <div data-if="d.lcur == 5" class="body" style="text-align: center; margin-top: 18dp;">
+          <div class="gold big">프리미엄 상점</div>
+          <div class="label gap-v">새 아이템 받기 · 보관함 · 장비 강화</div>
+          <div class="dimtx gap-v">테스트판: 모든 상품 무료</div>
+          <div class="setbtn gap-v" style="display: inline-block; margin-top: 10dp;" key="ok">열기</div>
+        </div>
+      </div>
+
+      <!-- 1/0: 저장·불러오기 고르기 -->
+      <div data-if="d.sub == 1 && d.stage == 0" class="grow col-flex">
+        <div class="title">{{d.t_sl}}</div>
+        <div class="choice">
+          <div class="menu-item" nav="sl" idx="0" data-class-sel="d.cur == 0" data-class-dis="!d.can_save">{{d.t_save}}</div>
+          <div class="menu-item" nav="sl" idx="1" data-class-sel="d.cur == 1">{{d.t_load}}</div>
+        </div>
+        <div class="cards pv2" data-class-v="d.narrow || d.tight"><div class="card" data-for="s : d.slots">
+          <div class="head"><span class="badge">{{s.no}}</span></div>
+          <div data-if="s.used"><div class="loc nowrap">{{s.name}}</div><div class="time">{{s.time}}</div></div>
+          <div class="fill" data-if="!s.used"></div><div class="empty" data-if="!s.used">{{d.empty}}</div><div class="fill" data-if="!s.used"></div><div class="fill" data-if="!s.used"></div>
+        </div></div>
+      </div>
+
+      <!-- 1/1·2: 슬롯 고르기 -->
+      <div data-if="d.sub == 1 && d.stage != 0" class="grow col-flex">
+        <div class="title"><span>{{d.save ? d.t_save : d.t_load}}</span></div>
+        <div class="cards grow" data-class-v="d.narrow || d.tight">
+          <div class="card big" data-for="s : d.slots" nav="slot" data-attr-idx="it_index" data-class-sel="it_index == d.cur" data-class-blank="!s.used">
+            <div class="head"><span class="badge">{{s.no}}</span></div>
+            <div class="fill"></div>
+            <div data-if="s.used" class="info"><div class="loc">{{s.name}}</div><div class="time">{{s.time}}</div></div>
+            <div class="empty" data-if="!s.used">{{d.empty}}</div>
+            <div class="fill"></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- 2: 환경설정 -->
+      <div data-if="d.sub == 2" class="grow col-flex">
+        <div class="title">{{d.t_cfg}}</div>
+        <!-- 줄과 단추가 패널보다 길면(빠듯한 폭에서 단추가 여러 줄로 넘어갈 때) 제목은 두고 이 안만 넘긴다 -->
+        <div class="cfgwrap" scroll="cfg">
+        <div class="cfg body">
+          <vlist for="r : d.cfg" nav="cfg" idx="it_index" sel="r.sel" label="r.name" size="l">
+            <!-- 고른 줄의 ◀ ▶와 값은 누르면 좌우 키(값 바꾸기). 고르지 않은 줄에는 key 속성 자체를 두지 않아(빈 값도 눌림을 삼킨다) 줄 누르기(고르기)가 된다 -->
+            <!-- 원작에 없는 줄(restored/cfgx.c) 가운데 여는 줄(r.act: 조작 설정, 기타 설정, 세이브 데이터)은 ◀ ▶ 대신 「열기」 단추(결정 키, 누르기) -->
+            <div class="vbox"><span class="ar" data-if="r.act == ''"><span class="arb" key="left" data-if="r.sel &amp;&amp; r.act == ''">◀</span><span class="arb hid" data-if="!r.sel &amp;&amp; r.act == ''">◀</span></span><span class="v" key="right" data-if="r.sel &amp;&amp; r.act == ''">{{r.val}}</span><span class="v" data-if="!r.sel &amp;&amp; r.act == ''">{{r.val}}</span><span class="v obtn" data-if="r.act != ''" data-attr-action="r.act"><span>{{r.val}}</span><span class="okey" data-if="r.sel">{{'ok' | key}}</span></span><span class="ar" data-if="r.act == ''"><span class="arb" key="right" data-if="r.sel &amp;&amp; r.act == ''">▶</span><span class="arb hid" data-if="!r.sel &amp;&amp; r.act == ''">▶</span></span></div>
+            <div class="dots" data-class-none="r.lvmax == 0"><div class="dot" data-class-on="r.lvmax > 1 ? r.lv >= 0 : r.lv >= 1"></div><div class="dot" data-if="r.lvmax > 1" data-class-on="r.lv >= 1"></div><div class="dot" data-if="r.lvmax > 1" data-class-on="r.lv >= 2"></div><div class="dot" data-if="r.lvmax > 1" data-class-on="r.lv >= 3"></div><div class="dot" data-if="r.lvmax > 1" data-class-on="r.lv >= 4"></div></div>
+          </vlist>
+        </div>
+        </div>
+      </div>
+
+      <!-- 3: 도움말 -->
+      <div data-if="d.sub == 3" class="grow col-flex">
+        <div class="title">{{d.t_help}}<span class="sub">{{d.hsection}}</span></div>
+        <div id="help" class="grow">
+          <!-- 도움말: 타이틀 메인 메뉴의 도움말과 같은 것(restored/help.c, ui/help.rcss). 색인을 누르면 그 항목(pick="help"). -->
+          <vlist class="hidx" for="h : d.hsections" pick="help" idx="h.i" idle="h.cur" label="h.t" size="s"/>
+          <div class="grow col-flex">
+            <div class="hpage grow" scroll="help"><div class="p" data-for="q : d.hparas" data-class-h="q.ty == 1" data-class-b="q.ty == 2" data-class-s="q.ty == 3">{{q.t}}</div></div>
+            <div class="pager">
+              <span class="ar arb" pick="help" data-attr-idx="d.hprev_i" data-if="d.hprev">◀</span><span class="ar arb off" data-if="!d.hprev">◀</span>
+              <div class="gauge exp"><div class="fill" data-style-width="(d.hpage * 100 / d.hpages) + '%'"></div></div>
+              <span class="ar arb" pick="help" data-attr-idx="d.hnext_i" data-if="d.hnext">▶</span><span class="ar arb off" data-if="!d.hnext">▶</span>
+              <span class="pn">{{d.hpage}}/{{d.hpages}}</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div id="keys" class="panel flat"><div class="keys">
+    <!-- 방향 안내(.nav)는 터치에서 감춘다(항목을 바로 누른다). 키 이름표는 장치별로 바뀐다 -->
+    <span data-if="d.pop == 1"><span class="nav kb"><span class="key">←→</span>선택</span><span class="kb" key="ok"><span class="key">{{'ok' | key}}</span>확인</span></span>
+    <!-- 터치: 하위 화면에 확인·이전 단계가 없다(왼쪽 목록을 바로 누르고, 환경설정은 바로 적용). 버튼은 옵션 나가기 하나. -->
+    <span class="tonly" data-if="d.pop == 0 &amp;&amp; d.mode == 1"><span class="kb" pick="opt" idx="9">나가기</span></span>
+    <span class="tonly" data-if="d.pop == 0 &amp;&amp; d.mode != 1 &amp;&amp; d.sub == 1"><span class="kb" key="clear">나가기</span></span>
+    <span class="ttnot" data-if="d.pop == 0 &amp;&amp; (d.sub == 0 || (d.sub == 1 &amp;&amp; d.stage == 0))"><span class="nav kb"><span class="key">{{d.sub == 1 ? '←→' : '↑↓'}}</span>이동</span><span class="kb" key="ok"><span class="key">{{'ok' | key}}</span>선택</span><span class="kb" key="clear"><span class="key">{{'clear' | key}}</span>{{d.sub == 0 ? '나가기' : '이전'}}</span></span>
+    <span class="ttnot" data-if="d.pop != 1 &amp;&amp; d.sub == 1 &amp;&amp; d.stage != 0"><span class="nav kb"><span class="key">{{d.narrow ? '↑↓' : '←→'}}</span>슬롯</span><span class="kb" key="ok"><span class="key">{{'ok' | key}}</span>{{d.save ? d.t_save : d.t_load}}</span><span class="kb" key="clear"><span class="key">{{'clear' | key}}</span>{{d.mode == 1 ? '이전' : '나가기'}}</span></span>
+    <span class="ttnot" data-if="d.pop == 0 &amp;&amp; d.sub == 2"><span class="wide nav kb"><span class="key">↑↓</span>항목</span><span class="nav kb"><span class="key">←→</span>값 바꾸기(바로 적용)</span><span class="kb" key="clear"><span class="key">{{'clear' | key}}</span>이전</span></span>
+    <span class="ttnot" data-if="d.pop == 0 &amp;&amp; d.sub == 3"><span class="nav kb"><span class="key">←→</span>항목</span><span class="nav kb"><span class="key">↑↓</span>넘기기</span><span class="kb" key="clear"><span class="key">{{'clear' | key}}</span>이전</span></span>
+  </div></div>
+</div>
+
+<div data-if="d.shell"><fmbar/></div>
+
+<!-- ===== 대화 상자 ===== -->
+<!-- 확인 창이 버튼 띠(「이전」)를 덮으므로 창 바깥(어두운 막)을 누르면 취소다. 막에 가려 누를 수 없는 「이전」만 남으면 터치로 빠져나갈 길이 없다 -->
+<div id="dlg" class="dlgw fmarea" key="clear" data-if="d.pop != 0">
+  <div class="panel gold pop">
+    <div data-if="d.pop == 1">
+      <div class="q">{{d.msg}}</div>
+      <div class="btns"><div class="btn menu-item" nav="yn" idx="0" data-class-sel="d.yn == 0">{{d.yes}}</div><div class="btn menu-item" nav="yn" idx="1" data-class-sel="d.yn == 1">{{d.no}}</div></div>
+    </div>
+    <div data-if="d.pop == 2" class="msg" data-class-bad="d.warn">{{d.msg}}</div>
+  </div>
+</div>
+</body></rml>

@@ -1,0 +1,20 @@
+<rml><head><link type="text/rcss" href="base.rcss"/><link type="text/rcss" href="dialog.rcss"/>
+<!-- 지역 이름 띠(0xd600 → 0x23578): 맵에 들어선 뒤 지역 이름이 있는 동안. 원본은 화면 폭 - 128의 띠 가운데 글.
+     위쪽 가운데에 장식선이 붙은 이름표로 띄운다. -->
+<style>
+#name { color: #fff; font-effect: outline(1dp #0a0e28); }
+.rule { height: 1dp; margin: 0 -8dp; decorator: horizontal-gradient(#f2c84a00 #f2c84a); }
+.rule.r { decorator: horizontal-gradient(#f2c84a #f2c84a00); }
+#line { display: flex; flex-direction: row; align-items: center; }
+#line .rule { width: 70dp; }
+#plate { white-space: nowrap; background-color: #12163ad8; border: 1dp #f2c84a; border-radius: 4dp; padding: 3dp 16dp; margin: 0 6dp; }
+</style></head>
+<body data-model="dialog_banner">
+<div class="stage-top">
+  <div id="line" class="fade">
+    <div class="rule"></div>
+    <div id="plate"><div data-for="it : d.lines"><span class="big" id="name" data-style-color="d.color">{{it.t}}</span></div></div>
+    <div class="rule r"></div>
+  </div>
+</div>
+</body></rml>

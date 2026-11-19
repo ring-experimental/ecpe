@@ -1,0 +1,36 @@
+# 원본과 원본 파생물. 원격에 올리지 않는다.
+origin/
+*.zip
+*.jar
+work/bin/
+work/game/
+work/build/
+work/shots/
+native/build/
+native/b_*/
+# Android 서명 키(잃으면 설치된 앱을 지워야 업데이트된다. 따로 보관)
+native/android/*.keystore
+.DS_Store
+__pycache__/
+
+# UI 시험 실행 폴더: 스크립트만 남기고 저장 사본, 화면, 메모리 덤프, 로그는 뺀다.
+work/ui/run/**
+!work/ui/run/**/
+!work/ui/run/**/*.sh
+!work/ui/run/**/*.py
+!work/ui/run/**/*.env
+# 영역별 증거 화면(다시 찍을 수 있다. work/ui/run/m_<영역>의 proof 스크립트)
+work/ui/modern/
+
+# 리마스터 일러스트(원본 그림을 다듬은 것): 정리본과 맞춘 결과
+work/illust/gpt/
+work/illust/out/
+work/illust/frames/
+
+# 기계별 시험 설정(work/config.sh가 읽는다)
+work/config.local.sh
+
+# 원본 화면 캡처(원본 파생물, 공개 기록에 없다. 로컬에만 둔다)
+work/ui/survey/shots/
+# 자료 모음(원본 관련 이미지)
+에픽크로니클자료/

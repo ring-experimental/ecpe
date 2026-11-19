@@ -1,0 +1,23 @@
+<rml><head><link type="text/rcss" href="base.rcss"/><link type="text/rcss" href="dialog.rcss"/>
+<!-- 지역 미니맵(장면 0x10b8c, 필드에서 #). 원본은 가운데 120폭 창 셋(지역 이름, 지도, 키 안내).
+     지도 그림(타일 색, 표시점, 깜빡이는 주인공 점)은 원본을 떼어 2배(들어가면)로 놓고, 틀과 글을 새로 그린다. -->
+<style>
+#panel { padding: 6dp 10dp 6dp 10dp; text-align: center; }
+#panel .title { text-align: center; }
+#mapbox { margin: 4dp auto 0 auto; padding: 4dp; background-color: #0a0e28; border: 1dp #4a5296; border-radius: 3dp; }
+#map { display: block; }
+.keys { margin-top: 6dp; text-align: center; }
+body.touch #hashkb, body.pad #hashkb { display: none; } /* # 도 같은 나가기라 터치·패드는 하나만 */
+.kb { padding: 0 6dp; }
+</style></head>
+<body data-model="dialog_minimap">
+<div class="screen center">
+  <div id="panel" class="panel pop" data-style-width="(d.mw + 22) + 'dp'">
+    <div class="title"><span>{{d.place}}</span></div>
+    <div id="mapbox" data-style-width="d.mw + 'dp'" data-style-height="d.mh + 'dp'">
+      <img id="map" data-if="d.map != ''" data-attr-src="d.map" data-style-width="d.mw + 'dp'" data-style-height="d.mh + 'dp'"/>
+    </div>
+    <div class="keys"><span class="kb" key="clear"><span class="key">{{'clear'|key}}</span>나가기</span><span class="kb" id="hashkb" key="hash"><span class="key">{{'hash'|key}}</span>나가기</span></div>
+  </div>
+</div>
+</body></rml>

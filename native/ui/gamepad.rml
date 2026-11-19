@@ -1,0 +1,19 @@
+<rml>
+<head><link type="text/rcss" href="ctl.rcss"/><title>gamepad</title></head>
+<body class="modal" data-model="ui">
+  <div class="panel wide">
+    <h1>게임패드 키 설정</h1>
+    <!-- 줄 순서는 host/gamepad.c의 ACTIONS를 따른다. 왼쪽 스틱은 언제나 이동이다. 줄을 고른 뒤 버튼을 누른다. -->
+    <div class="binds">
+      <button class="bind" data-for="b : binds" data-event-click="bind_start(it_index)"><span>{{b.name}}</span><span class="key">{{capture == it_index ? '누르세요' : b.key}}</span></button>
+    </div>
+    <div class="note">「(대사)」「(전투)」는 따로 붙인 버튼이 없어 그 장면에서만 다른 동작의 버튼을 빌려 쓰는 것이다. 버튼을 직접 붙이면 그 버튼도 함께 쓴다. 필드의 퀵세이브는 「9 단축 스킬」 버튼이다.</div>
+    <div class="buttons">
+      <button data-event-click="bind_reset">초기화</button>
+      <button data-event-click="close_binds">닫기</button>
+    </div>
+    <div class="mkeys" data-if="src == 0"><span class="mk">↑↓←→</span>이동<span class="mk">Enter</span>바꿀 동작 선택<span class="mk">Esc</span>닫기</div>
+    <div class="mkeys" data-if="src == 2"><span class="mk">↑↓←→</span>이동<span class="mk">{{pad_ok}}</span>바꿀 동작 선택<span class="mk">{{pad_back}}</span>닫기</div>
+  </div>
+</body>
+</rml>

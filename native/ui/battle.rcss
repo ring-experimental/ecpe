@@ -1,0 +1,149 @@
+/* 전투 UI(영역 battle) 공용 스타일. 1dp = 게임 화면 1px(높이 320). 아래 띠 높이는 원작과 같은 48dp다. */
+
+/* data-for 배열의 빈 칸(v = 0). 배열이 줄지 않게 채운 자리라 감춘다(ui_battle.c L_end). */
+.off { display: none; }  /* id 규칙보다 약하므로 파일 끝에서 다시 막는다 */
+
+/* ---- 아래 띠 ---- */
+#band { position: absolute; left: 0; right: 0; bottom: 0; height: 48dp; box-sizing: border-box; display: flex; flex-direction: row;
+        decorator: vertical-gradient(#1c2152f4 #0d1030f4); border-top: 1dp #8c96e8; padding: 3dp 4dp 3dp 0; }
+#lead { width: 76dp; flex: 0 0 auto; justify-content: center; align-items: center; }
+#lead .mode { color: #8c94c4; }
+#cards { display: flex; flex-direction: row; }
+.card { flex: 1 1 0; min-width: 0; margin-left: 4dp; padding: 0 5dp; box-sizing: border-box; height: 42dp;
+        background-color: #10143290; border: 1dp #4a5296; border-radius: 3dp; max-width: 200dp; }
+.card.act { border-color: #ffd75e; background-color: #2a347090; }
+.card.tgt { border-color: #7df08c; }
+.card.ko { opacity: 0.6; }
+.card .l1 { display: flex; flex-direction: row; align-items: center; height: 13dp; white-space: nowrap; }
+.card .nm { flex: 1 1 0; min-width: 0; overflow: hidden; color: #fff; }
+.tag { font-size: 10dp; line-height: 11dp; padding: 0 3dp; margin-left: 3dp; border-radius: 2dp; }
+.tag.ko { color: #fff; background-color: #a02a3a; }
+.tag.rd { color: #1a1050; background-color: #ffd75e; }
+.tag.tg { color: #0a2a10; background-color: #7df08c; }
+.gl { display: flex; flex-direction: row; align-items: center; height: 9dp; font-size: 10dp; line-height: 9dp; white-space: nowrap; }
+.gl .lb { flex: 0 0 auto; width: 16dp; color: #9aa2d8; }
+.gl .v { flex: 0 0 auto; width: 52dp; text-align: right; margin-right: 4dp; }
+.hpv { color: #ffe054; }          /* 원작 HP 숫자색 RGB(255,224,84) */
+.hpv.low { color: #ff7a7a; }
+.mpv { color: #abfcff; }          /* 원작 MP 숫자색 RGB(171,252,255) */
+.mx { color: #8c94c4; }
+.gl .gauge { height: 3dp; }
+.g2 .lb { width: 18dp; }
+.g2 .mgl { margin-left: 4dp; }
+.g2 .mgl.full { color: #ff6a3c; }
+.gauge.atb .fill { decorator: horizontal-gradient(#2fa0d0 #2fd0f5); }   /* 원작 ATB 색 RGB(47,208,245) */
+.gauge.atb.full { border-color: #8cf0ff; }
+.gauge.mg .fill { decorator: horizontal-gradient(#c02a52 #ff4262); }   /* 원작 MG 색 RGB(255,66,98), 가득이면 주황빨강 */
+.gauge.mg.full .fill { decorator: horizontal-gradient(#ff3b00 #ffa040); }
+.gauge.mg.full { border-color: #ffa040; }
+
+/* 좁은 화면: 멤버마다 한 줄(원작 배치와 같은 줄 구성) */
+#root.narrow #band #lead { width: 60dp; }
+#root.narrow #band #cards { flex-direction: column; }
+#root.narrow #band .card { flex: 0 0 auto; height: 14dp; max-width: none; display: flex; flex-direction: row; align-items: center; padding: 0 3dp; margin: 0 0 0 2dp; border-width: 0; background-color: transparent; }
+#root.narrow #band .card.act { background-color: #2a347090; }
+#root.narrow #band .card .l1 { width: 36dp; flex: 0 0 auto; }
+#root.narrow #band .card .tag { display: none; }
+#root.narrow #band .card.ko .nm { color: #ff7a7a; }
+#root.narrow #band .gl { flex: 0 0 auto; }
+#root.narrow #band .gl .lb { display: none; }
+#root.narrow #band .gl .gauge.hp, #root.narrow #band .gl .gauge.mp { display: none; }
+#root.narrow #band .gl .v { width: 44dp; margin-right: 2dp; }
+#root.narrow #band .g2 { flex: 1 1 0; }
+#root.narrow #band .g2 .gauge { height: 3dp; }
+
+/* ---- 명령 메뉴 ---- */
+#cmd { position: absolute; left: 3dp; bottom: 3dp; width: 70dp; padding: 3dp; }
+#root.narrow #cmd { width: 56dp; }
+#root.narrow #cmd .ck { display: none; }  /* 좁은 폭에서 'LB' 같은 패드 이름표가 글자와 겹친다(위 키 안내에 같은 키가 있다) */
+.ci { display: flex; flex-direction: row; align-items: center; height: 12dp; padding: 0 4dp; border-radius: 2dp; white-space: nowrap; color: #c8cdf6; }
+.ci .cn { flex: 1 1 0; }
+.ci .ck { flex: 0 0 auto; font-size: 10dp; color: #8c94c4; }
+.ci.sel { decorator: horizontal-gradient(#3f78f0 #2a4ab8); color: #fff; }
+.ci.sel .ck { color: #cfd3ff; }
+.ci.dis { color: #6c7098; }
+.ci.dis.sel { color: #9ca4c8; }
+#sub { position: absolute; left: 76dp; bottom: 51dp; width: 108dp; padding: 3dp; }
+#sub .sr { display: flex; flex-direction: row; }
+#sub .ci { width: 50%; flex: 0 0 auto; box-sizing: border-box; }
+
+/* ---- 목록 ---- */
+#list { position: absolute; left: 76dp; right: 4dp; bottom: 51dp; height: 112dp; }
+#tabs { flex: 0 0 auto; width: 52dp; margin-right: 6dp; }
+.tb { height: 13dp; line-height: 13dp; padding: 0 4dp; margin-bottom: 1dp; font-size: 10dp; border-radius: 2dp; color: #9aa2d8; background-color: #10143290; white-space: nowrap; }
+.tb.sel { color: #fff; decorator: horizontal-gradient(#6a3ad6 #3a34a8); }
+.tb.dis { color: #545a86; }
+/* 줄은 <vlist id="rows">(ui/vlist.rcss). 아이템 목록(원본은 ←→로 고르는 두 칸 격자)만 줄을 두 칸으로 늘어놓는다 */
+#list.items #rows { display: flex; flex-direction: row; flex-wrap: wrap; align-content: flex-start; }
+#list.items #rows .vrow { width: 49%; margin-right: 1%; padding: 0 3dp; } /* 두 칸이라 좁다: 안쪽 여백을 줄여 이름을 한 글자라도 더 */
+#list.items #rows .vic { margin-right: 2dp; }
+#list.items #rows .vval { margin-left: 2dp; }
+#rows .vrow.dis .vval { color: #ff9a9a; } /* MP가 모자란 스킬: 값을 붉게 */
+.empty { padding: 20dp 0; text-align: center; color: #cfd3ff; }
+#desc { flex: 0 0 auto; overflow: hidden; width: 40%; margin-left: 8dp; padding-left: 8dp; border-left: 1dp #4a5296; }
+#desc .dn { color: #ffd75e; white-space: nowrap; overflow: hidden; }
+#desc .dm { color: #9aa2d8; margin: 1dp 0 3dp 0; }
+#desc .dm span { margin-right: 6dp; }
+#desc .dt { color: #e0e4ff; word-break: break-word; }
+#root.narrow #list { left: 2dp; right: 2dp; }
+#root.narrow #list #desc { width: 36%; }
+#root.narrow #list #tabs { width: 40dp; }
+#root.narrow #list.items #rows .vrow { width: 100%; }
+
+/* ---- 적 정보 ---- */
+#epw { position: absolute; left: 0; right: 0; bottom: 51dp; text-align: center; }
+#epw.up { bottom: 96dp; }  /* 숫자 키 안내(오른쪽 위쪽에 두 줄까지 감김) 위 */
+#ep { display: inline-block; text-align: left; padding: 6dp 8dp 4dp 8dp; }
+#ep .er { display: flex; flex-direction: row; align-items: center; height: 15dp; white-space: nowrap; }
+#ep .lt { width: 12dp; height: 12dp; line-height: 12dp; text-align: center; color: #1a1050; background-color: #ffd75e; border-radius: 2dp; font-size: 10dp; margin-right: 5dp; }
+#ep .en { width: 80dp; overflow: hidden; }
+#ep .bars { display: flex; flex-direction: row; align-items: flex-end; height: 11dp; margin: 0 8dp 0 4dp; }
+#ep .bar { width: 5dp; height: 11dp; margin-right: 2dp; background-color: #303060; border: 1dp #ffffff; box-sizing: border-box; display: flex; flex-direction: column; justify-content: flex-end; }
+#ep .bf { width: 100%; }
+#ep .lb { color: #9aa2d8; font-size: 10dp; margin-right: 3dp; }
+#ep .ehp { color: #ffe054; width: 32dp; text-align: right; }
+
+/* ---- 대상 이름 ---- */
+
+/* ---- 숫자 키 안내 ---- */
+#hints .kb { margin-left: 8dp; }
+#hints .kb.k0 { margin-left: 0; }
+/* 왼쪽은 명령 메뉴(폭 70dp) 오른쪽까지만. 상자 바탕은 칸마다(긴 이름이면 줄이 감긴다) */
+#hints { position: absolute; left: 76dp; right: 4dp; bottom: 51dp; text-align: right; white-space: normal; }
+#hints .kb { background-color: #10143cd0; border-radius: 3dp; padding: 1dp 4dp; margin-bottom: 2dp; }
+#root.narrow #hints { top: 3dp; bottom: auto; left: 2dp; right: 2dp; white-space: normal; text-align: center; padding: 1dp 3dp; }
+#root.narrow #hints .kb { margin-left: 4dp; }
+
+/* 빈 칸 감추기(위 id 규칙보다 구체적으로) */
+#band .card.off, #root.narrow #band .card.off, #list #rows .vrow.off, #tabs .tb.off, #ep .er.off, #ep .bar.off, #hints span.off, #hints .kb.off, body .nt.off { display: none; }
+#root.narrow #epw.up { bottom: 51dp; }
+#root.narrow #epw, #root.narrow #epw.up { bottom: 72dp; }
+#root.narrow #list #desc { width: 32%; margin-left: 4dp; padding-left: 4dp; }
+#root.narrow #list #tabs { width: 34dp; margin-right: 3dp; }
+#root.narrow #rows .vval { margin-left: 2dp; }
+#root { opacity: 1; transition: opacity 0.5s linear-in-out; }
+#root.defeat { opacity: 0; }
+
+/* ---- 터치·게임패드 ----
+   목록 줄은 18dp(터치로 누르기 좋은 높이)라 4줄만 보인다(ui_battle.c win_calc가 창을 민다). */
+#sub .sk { margin-top: 2dp; text-align: right; }
+.mk { color: #ffd75e; margin-right: 3dp; }
+#list .title .sub .kb { margin-left: 4dp; }
+body.touch .ci { height: 20dp; line-height: 20dp; }
+body.touch .ci .ck { display: none; }
+body.touch .tb { height: 15dp; line-height: 15dp; }
+body.touch #list .title { height: 20dp; padding-top: 0; padding-bottom: 0; line-height: 20dp; }
+body.touch #list .title .sub .kb { height: 18dp; line-height: 18dp; margin-top: 1dp; }
+/* 터치에서는 화면 패드의 OK·취소(오른쪽, host/ui.cpp groups 기본 자리)를 가리지 않게 오른쪽을 비운다 */
+body.touch #hints { line-height: 22dp; right: 96dp; }
+body.touch #epw.up { bottom: 112dp; }
+body.touch #hints .kb { margin-left: 4dp; margin-bottom: 2dp; }
+body.touch #hints .kb.k0 { margin-left: 0; }
+body.touch #sub .sk .kb { margin-left: 0; }
+/* 터치: 분류 탭 6개(16dp)와 제목 띠(20dp)가 들어가게 목록을 키운다 */
+body.touch #list { height: 136dp; }
+body.touch .tb { height: 16dp; line-height: 16dp; }
+
+/* 키보드·게임패드에서만 보이는 안내(터치는 화면 패드의 OK·취소가 그 버튼이다) */
+body.touch .ntouch { display: none; }
+body.touch #hints .kb.k0.ntouch + .kb { margin-left: 0; }

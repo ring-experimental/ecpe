@@ -1,0 +1,122 @@
+<rml><head><link type="text/rcss" href="base.rcss"/><link type="text/rcss" href="fmchar.rcss"/><link type="text/rcss" href="fmshell.rcss"/>
+<title>스테이터스</title>
+<style>
+/* 필드 메뉴 화면 4 스테이터스(원본 0x3312c). 원본 120×146 창 하나를 캐릭터 시트로 펼쳤다:
+   왼쪽 얼굴·이름·레벨·GP·EXP, 오른쪽 HP/MP와 능력치 두 열(기본 STR/DEX/INT + GP 분배 커서, 파생 6종).
+   장착 장비 단은 뺐다(사용자 결정 2026-11-12: 원작 스테이터스에 없고 장비 화면에서 본다. 능력치가 그 자리를 채운다). */
+#main { flex: 1 1 0; display: flex; flex-direction: row; min-height: 0; }
+#card { width: 150dp; flex: 0 0 auto; }
+#mid { flex: 1 1 0; margin-left: 6dp; min-width: 0; }
+#facecell { display: flex; justify-content: center; margin-top: 2dp; }
+#name { text-align: center; margin-top: 4dp; }
+#cols { display: flex; flex-direction: row; margin-top: 2dp; }
+#basecol { flex: 1 1 0; min-width: 0; }
+#dercol { flex: 1 1 0; min-width: 0; margin-left: 10dp; }
+/* 기본 능력치(GP 올리기 목록, vlist 부품): 이름 오른쪽에 값과 ▲ 열 */
+#base .vlabel { color: #9aa2d8; }
+#base .vrow.sel .vlabel { color: #fff; }
+#base .v { flex: 0 0 auto; width: 30dp; text-align: right; color: #fff; }
+#base .up { flex: 0 0 auto; width: 16dp; text-align: right; color: #7df08c; }
+.drow { height: 16dp; line-height: 16dp; }
+#gpnote { margin-top: 6dp; }
+.gpbig { color: #ffd75e; }
+.arrows { color: #ffd75e; }
+
+/* 좁은 화면: 위에 얼굴+요약 한 줄, 아래 능력치. */
+body.narrow #main { flex-direction: column; }
+body.narrow #card { width: auto; }
+body.narrow #cardin { display: flex; flex-direction: row; }
+body.narrow #facecell { margin-top: 0; }
+body.narrow #sum { flex: 1 1 0; margin-left: 6dp; }
+body.narrow #name { text-align: left; margin-top: 0; }
+body.narrow #mid { margin-left: 0; margin-top: 4dp; }
+body.narrow #dercol { margin-left: 6dp; }
+body.narrow #base .v { width: 22dp; }
+body.narrow .panel { padding: 4dp 6dp; }
+body.narrow .title { margin: -4dp -6dp 4dp -6dp; }
+body.narrow #base .vrow { height: 15dp; } /* 좁은 화면은 세로가 모자라 줄을 낮춘다 */
+body.narrow.touch #base .vrow { height: 20dp; }
+body.narrow .drow { height: 13dp; line-height: 13dp; }
+body.narrow .gline { margin-top: 1dp; }
+body.narrow #gpnote { display: none; }
+body.narrow .sep { margin: 2dp 0; }
+.tarrow { color: #ffd75e; }
+.title .sub { white-space: nowrap; }
+body.touch .idxtx { display: none; }
+body.touch .tarrow { padding: 2dp 7dp; margin-left: 2dp; background-color: #2a3470; border: 1dp #8c96e8; border-radius: 3dp; }
+body.shell .oldkeys { display: none; }
+/* 틀: 캐릭터 넘김은 위 캐릭터 띠가 맡는다. GP는 줄의 ▲ 버튼(또는 「GP 분배」)으로만 올린다(줄 누르기는 고르기만) */
+body.shell #card .title .sub { display: none; }
+/* 틀 안은 레일 몫만큼 좁다: 카드를 줄여 능력치 단에 준다 */
+body.shell #card { width: 118dp; }
+body.shell #base .v { width: 22dp; }
+/* 좁은 폭(400~470): 능력치 단이 150dp쯤이라 파생 능력치 칸을 고정하고 줄의 안쪽 여백을 줄여 STR/DEX/INT의 값·▲가 잘리지 않게 한다 */
+@media (max-width: 470dp) {
+    body.shell #dercol { flex: 0 0 62dp; margin-left: 4dp; }
+    body.shell #base .vrow { padding: 0 3dp; }
+    body.shell #base .upb { margin-left: 2dp; width: 18dp; }
+}
+/* 좁은 틀 안: 초상은 위 캐릭터 띠에 있으므로 카드의 큰 초상은 접는다(세로가 모자라 능력치 창과 겹쳤다) */
+body.shell.narrow #facecell { display: none; }
+body.shell.narrow #card { width: auto; }
+body.shell.narrow #mid > *, body.shell.narrow #card { flex-shrink: 0; } /* 내용이 줄어 제목 띠와 겹치지 않게 */
+body.shell.narrow #mid .gauge { display: none; } /* 세로가 모자라 HP·MP는 수치만(좁은 메인 카드와 같다) */
+body.shell.narrow .drow { height: 12dp; line-height: 12dp; }
+#base .upb { width: 22dp; height: 14dp; line-height: 14dp; margin-left: 4dp; text-align: center; color: #1a1050; background-color: #7df08c; border-radius: 2dp; }
+#base .upb.hover { background-color: #b8ffc0; }
+body.touch #base .upb { width: 28dp; height: 18dp; line-height: 18dp; }
+</style></head>
+<body data-model="fmchar_status" data-class-narrow="d.narrow" data-class-shell="d.shell" data-class-chars="d.chars">
+<div class="screen col-flex" data-class-narrow="d.narrow" data-class-dim="!d.shell">
+  <div id="main">
+    <div id="card" class="panel pop col-flex">
+      <div class="title">스테이터스<span class="sub" data-if="d.count > 1"><span class="arrows tarrow" key="left" shoulder="prev">◀</span> <span class="idxtx">{{d.idx}}/{{d.count}}</span> <span class="arrows tarrow" key="right" shoulder="next">▶</span></span></div>
+      <div id="cardin">
+        <div id="facecell">
+          <div class="facebox" data-style-width="(d.narrow ? d.face_w : d.face_w * 2) + 'dp'" data-style-height="(d.narrow ? d.face_h : d.face_h * 2) + 'dp'">
+            <img data-if="d.face != ''" data-attr-src="d.face" data-style-width="(d.narrow ? d.face_w : d.face_w * 2) + 'dp'" data-style-height="(d.narrow ? d.face_h : d.face_h * 2) + 'dp'"/>
+          </div>
+        </div>
+        <div id="sum">
+          <div id="name" class="big outline">{{d.name}}</div>
+          <div class="sep"></div>
+          <div class="kv"><span class="k">LV</span><span class="v">{{d.lv}}</span></div>
+          <div class="kv"><span class="k">GP</span><span class="v" data-class-gpbig="d.gp > 0">{{d.gp}}</span></div>
+          <div class="gline">
+            <div class="kv"><span class="k">EXP</span><span class="v">{{d.exp}} / {{d.expnext}}</span></div>
+            <div class="gauge exp"><div class="fill" data-style-width="d.exp_pct + '%'"></div></div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div id="mid" class="panel pop col-flex">
+      <div class="title">능력치<span class="sub" data-if="d.gp > 0">GP 분배</span></div>
+      <div class="gline">
+        <div class="kv"><span class="k">HP</span><span class="v hpv">{{d.hp}} / {{d.hpmax}}</span></div>
+        <div class="gauge hp"><div class="fill" data-style-width="d.hp_pct + '%'"></div></div>
+      </div>
+      <div class="gline">
+        <div class="kv"><span class="k">MP</span><span class="v mpv">{{d.mp}} / {{d.mpmax}}</span></div>
+        <div class="gauge mp"><div class="fill" data-style-width="d.mp_pct + '%'"></div></div>
+      </div>
+      <div class="sep"></div>
+      <div id="cols">
+        <div id="basecol">
+          <vlist id="base" for="it : d.base" nav="base" idx="it.i" sel="it_index == d.cursor" label="it.label"><span class="v">{{it.val}}</span><span class="up" data-if="!d.shell || d.gp == 0">▲</span><span class="up upb" data-if="d.shell &amp;&amp; d.gp &gt; 0" pick="gpup" data-attr-idx="it.i">▲</span></vlist>
+          <div id="gpnote" class="small dimtx" data-if="d.gp > 0">남은 GP <span class="gold">{{d.gp}}</span></div>
+        </div>
+        <div id="dercol">
+          <div class="kv drow" data-for="it : d.derived"><span class="k">{{it.label}}</span><span class="v">{{it.val}}</span></div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="panel flat gap-v oldkeys"><div class="keys">
+    <span class="kb" key="clear"><span class="key">{{ 'clear' | key }}</span>이전</span>
+    <span class="kb nav" data-if="d.count > 1"><span class="key">◀▶</span>캐릭터</span>
+    <span class="kb nav" data-if="d.cursor >= 0"><span class="key">▲▼</span>능력치</span>
+    <span class="kb" key="ok" data-if="d.cursor >= 0"><span class="key">{{ 'ok' | key }}</span>GP 분배</span>
+  </div></div>
+</div>
+<fmbar/>
+</body></rml>

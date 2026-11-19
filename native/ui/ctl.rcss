@@ -1,0 +1,74 @@
+/* 터치 패드와 조작 설정(호스트 문서, 데이터 모델 "ui"). 1dp는 게임 화면 1픽셀(높이 320 기준)이다.
+   패드 묶음의 크기는 em(묶음 글자 크기 = 34dp × 크기 설정 × 묶음 배율)이고 자리는 host/ui.cpp가 계산한다.
+   색은 메뉴(base.rcss)의 남색 바탕, 보라 테두리, 금색 강조를 따르고 그림 없이 상자와 글로만 그린다. */
+body { font-family: NeoDunggeunmo; font-size: 12dp; line-height: 14dp; color: #f4f6ff; width: 100%; height: 100%; position: absolute; left: 0; top: 0; }
+div, span, h1, button, input { display: block; }
+span { display: inline-block; }
+
+/* ---- 패드 ---- */
+#root { position: absolute; left: 0; top: 0; width: 100%; height: 100%; pointer-events: none; }
+.group { position: absolute; pointer-events: auto; }
+.group.edit { background-color: #ffffff28; border-radius: 0.15em; }
+.group.selected { background-color: #ffd75e70; }
+.btn { position: absolute; left: 0; top: 0; width: 1em; height: 1em; text-align: center; color: #f4f6ff; font-effect: outline(1dp #0a0e28);
+       display: flex; justify-content: center; align-items: center; box-sizing: border-box; background-color: #161a3ec0; border: 0.04em #8c96e8; border-radius: 0.5em; }
+.btn.on { background-color: #3f78f0e0; border-color: #ffffce; }
+.btn .t { display: block; text-align: center; font-size: 12dp; line-height: 14dp; }
+/* 방향 패드: 바탕 원 위에 네 칸. 칸 사이를 끌어 옮겨 갈 수 있다. */
+.dial { position: absolute; left: 0; top: 0; width: 3em; height: 3em; box-sizing: border-box; border-radius: 1.5em; background-color: #10143270; border: 0.04em #4a529690; }
+.arrow { width: 1em; height: 1em; border-radius: 0.2em; background-color: #161a3eb0; }
+.arrow .t { font-size: 16dp; line-height: 16dp; color: #cfd3ff; }
+.arrow.on .t { color: #fff; }
+.orb { width: 1.5em; height: 1.5em; border-radius: 0.75em; border-color: #f2c84a; }
+.orb .t { font-size: 16dp; line-height: 16dp; color: #ffd75e; }
+.small { width: 0.9em; height: 0.9em; border-radius: 0.45em; }
+.small .t { font-size: 10dp; line-height: 12dp; }
+.tiny { width: 0.7em; height: 0.7em; border-radius: 0.35em; }
+.tiny .t { font-size: 10dp; line-height: 12dp; }
+
+/* ---- 설정 창과 편집 막대 ---- */
+.modal { background-color: #070a1cb0; z-index: 10; display: flex; justify-content: center; align-items: center; }
+.panel { width: 300dp; max-width: 92%; padding: 10dp 12dp; background-color: #161a3ef4; border: 1dp #8c96e8; border-radius: 3dp; box-sizing: border-box; }
+h1 { margin: -10dp -12dp 10dp -12dp; padding: 3dp 8dp; height: 14dp; decorator: horizontal-gradient(#6a3ad6 #2a2a8e); border-radius: 2dp 2dp 0 0; color: #fff; font-effect: outline(1dp #1a1050); }
+.row { display: flex; align-items: center; min-height: 24dp; margin-bottom: 4dp; }
+.row span { flex: 0 0 34%; color: #cfd3ff; }
+.buttons { display: flex; margin-top: 8dp; }
+button { flex: 1 1 auto; height: 22dp; line-height: 22dp; padding: 0 8dp; margin: 0 3dp; background-color: #2a3470; border: 1dp #8c96e8; border-radius: 3dp; text-align: center; box-sizing: border-box; white-space: nowrap; }
+button:hover { background-color: #3a46a0; }
+button:active { background-color: #3f78f0; }
+.note { margin-top: 6dp; color: #9aa2d8; font-size: 10dp; line-height: 12dp; }
+
+input.range { display: block; flex: 1 1 auto; height: 18dp; }
+input.range slidertrack { height: 5dp; margin-top: 6dp; background-color: #0a0e28; border-radius: 2dp; }
+input.range sliderbar { width: 12dp; height: 18dp; background-color: #f2c84a; border-radius: 2dp; }
+input.range sliderbar:active { background-color: #ffffce; }
+input.range sliderarrowdec, input.range sliderarrowinc { width: 0; height: 0; }
+input.checkbox { display: block; width: 18dp; height: 18dp; background-color: #0a0e28; border: 1dp #f2c84a; border-radius: 2dp; box-sizing: border-box; }
+input.checkbox:checked { background-color: #f2c84a; }
+
+/* 막대 밖은 패드 묶음을 끌 수 있게 통과시킨다. */
+.editbar-root { pointer-events: none; z-index: 10; display: flex; justify-content: center; align-items: flex-end; }
+.editbar { pointer-events: auto; display: flex; align-items: center; width: 70%; height: 30dp; margin-bottom: 6dp; padding: 0 4dp; background-color: #161a3ef4; border: 1dp #f2c84a; border-radius: 3dp; box-sizing: border-box; }
+.editbar span { flex: 1 1 auto; text-align: center; pointer-events: auto; font-size: 10dp; }
+.editbar button { flex: 0 0 auto; pointer-events: auto; }
+
+/* 키보드·게임패드로 창을 다룬다. 왼쪽, 오른쪽은 슬라이더 값을 바꾼다. */
+button, input.checkbox { tab-index: auto; nav: auto; }
+input.range { tab-index: auto; nav-up: auto; nav-down: auto; }
+button:focus, input.checkbox:focus { border-color: #ffffff; background-color: #3a46a0; }
+input.checkbox:focus:checked { background-color: #ffffce; }
+input.range:focus sliderbar { background-color: #ffffff; }
+
+/* 게임패드 키 설정. 좁으면 한 줄씩 놓이고 스크롤된다. */
+.panel.wide { width: 440dp; }
+.binds { display: flex; flex-wrap: wrap; max-height: 168dp; overflow: auto; }
+button.bind { flex: 1 1 180dp; display: flex; justify-content: space-between; height: 20dp; line-height: 20dp; margin: 1dp 3dp; padding: 0 6dp; }
+button.bind span { display: inline-block; }
+button.bind .key { color: #ffd75e; }
+.binds scrollbarvertical { width: 5dp; }
+.binds scrollbarvertical sliderbar { background-color: #f2c84a; border-radius: 2dp; }
+.binds scrollbarvertical sliderarrowdec, .binds scrollbarvertical sliderarrowinc { width: 0; height: 0; }
+
+/* 설정 창 아래 키 안내(키보드·게임패드로 다룰 때만. host/ui.cpp의 src, pad_ok, pad_back) */
+.mkeys { margin-top: 8dp; padding-top: 6dp; border-top: 1dp #4a5296; text-align: right; color: #cfd3ff; font-size: 10dp; line-height: 14dp; }
+.mk { display: inline-block; padding: 0 3dp; margin: 0 3dp 0 8dp; height: 12dp; line-height: 12dp; background-color: #2a3470; border: 1dp #8c96e8; border-radius: 2dp; color: #fff; }

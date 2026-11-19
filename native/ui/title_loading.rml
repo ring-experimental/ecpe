@@ -1,0 +1,9 @@
+<rml><head><link type="text/rcss" href="base.rcss"/>
+<!-- Loading(0x10410). 원본은 검은 화면 오른쪽 아래에 한 번 쓴다. -->
+<style>
+#l { position: absolute; right: 12dp; bottom: 10dp; }
+#l .panel { padding: 2dp 10dp; border-radius: 8dp; background-color: #161a3e; }
+</style></head>
+<body data-model="title_loading">
+<div id="l"><div class="panel flat"><span>{{d.t}}</span></div></div>
+</body></rml>

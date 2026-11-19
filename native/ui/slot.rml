@@ -1,0 +1,187 @@
+<rml><head><link type="text/rcss" href="base.rcss"/>
+<!-- 미니게임 트리플 슬롯(restored/ui_minigame.c). 원본은 240폭 작은 창 하나(코인·릴·베팅·결과)와 2쪽 도움말(배당표)이었다.
+     넓은 화면: 왼쪽 기계 + 오른쪽 배당표(늘 보임, 도움말 상태면 금테로 앞에). 좁으면(폭 < 400) 기계만, 도움말 상태에서 배당표를 위에 띄운다.
+     누르는 것은 모두 원본 키다: 릴 아래 멈춤(1/2/3, 그 릴이 돌 때만), 베팅 최소(↓)·−1(←)·+1(→)·최대(↑), 돌리기/계속/받기(OK),
+     도움말(*), 나가기(CLR). 종료 확인은 예(OK)/아니오(CLR). 릴 칸은 원본 칸(33×42)의 두 배다.
+     게임패드: 릴이 도는 동안 X·Y·B = 멈춤 1·2·3, START 나가기(restored/ui_minigame.c). 버튼 이름은 kh에 붙인다. -->
+<style>
+body { decorator: vertical-gradient(#1c1446 #06071a); }
+#wrap { position: absolute; left: 0; top: 0; width: 100%; height: 100%; box-sizing: border-box; padding: 10dp 14dp; display: flex; flex-direction: row; justify-content: center; align-items: center; }
+#mach { flex: 0 0 auto; width: 300dp; padding: 6dp 8dp 8dp 8dp; }
+#side { flex: 1 1 0; max-width: 300dp; margin-left: 8dp; align-self: stretch; display: flex; flex-direction: column; }
+body.narrow #mach { width: 100%; }
+body.narrow #side { display: none; }
+
+.coinrow { display: flex; flex-direction: row; align-items: center; height: 22dp; padding: 0 8dp; background-color: #0a0e28; border: 1dp #4a5296; border-radius: 3dp; }
+.coinrow .label { color: #ffd75e; font-size: 16dp; line-height: 18dp; }
+.coinrow .v { flex: 1 1 0; text-align: right; font-size: 16dp; line-height: 18dp; color: #ffd75e; font-effect: outline(1dp #3a2a00); }
+
+#reels { position: relative; margin-top: 6dp; height: 92dp; display: flex; flex-direction: row; justify-content: center; }
+.reel { position: relative; width: 70dp; height: 88dp; margin: 0 4dp; overflow: hidden; border: 2dp #c8a0a0; border-radius: 3dp; background-color: #f0e9f0; }
+.reel.spin { border-color: #ffd75e; }
+.cell { position: absolute; left: 0; width: 70dp; height: 84dp; display: flex; justify-content: center; align-items: center; }
+body.narrow .reel { width: 60dp; height: 80dp; }
+body.narrow .cell { width: 60dp; }
+#resov { position: absolute; left: 0; top: 0; width: 100%; height: 100%; display: flex; flex-direction: column; justify-content: center; align-items: center; background-color: #06071a80; }
+#resov .won { margin-top: 2dp; font-size: 16dp; line-height: 18dp; color: #ffd75e; font-effect: outline(1dp #3a2a00); }
+
+.stops { display: flex; flex-direction: row; justify-content: center; margin-top: 4dp; }
+.stop { width: 70dp; margin: 0 4dp; height: 20dp; line-height: 20dp; text-align: center; border-radius: 3dp; color: #fff; border: 1dp #8c96e8; background-color: #2a3470; }
+.stop.off { color: #6a72a0; border-color: #3a427a; background-color: #12163a; }
+body.narrow .stop { width: 60dp; }
+.kh { color: #9aa2d8; font-size: 10dp; margin-right: 4dp; }
+body.touch .kh { display: none; }
+
+.betrow { display: flex; flex-direction: row; align-items: center; margin-top: 6dp; height: 22dp; }
+.bb { flex: 0 0 auto; height: 20dp; line-height: 20dp; padding: 0 5dp; margin-right: 3dp; text-align: center; border-radius: 3dp; color: #fff; border: 1dp #8c96e8; background-color: #2a3470; font-size: 10dp; }
+.bb.off { color: #6a72a0; border-color: #3a427a; background-color: #12163a; }
+.betv { flex: 1 1 0; height: 20dp; line-height: 20dp; padding: 0 6dp; margin-right: 3dp; background-color: #0a0e28; border: 1dp #4a5296; border-radius: 3dp; display: flex; flex-direction: row; }
+.betv .label { color: #7df08c; font-size: 10dp; }
+.betv .num { flex: 1 1 0; text-align: right; }
+.resv { display: flex; flex-direction: row; height: 20dp; line-height: 20dp; padding: 0 6dp; margin-top: 4dp; background-color: #0a0e28; border: 1dp #4a5296; border-radius: 3dp; }
+.resv .label { color: #7df08c; font-size: 10dp; }
+.resv .num { flex: 1 1 0; text-align: right; }
+.resv .num.hit { color: #ffd75e; }
+body.touch .bb, body.touch .stop { height: 26dp; line-height: 26dp; }
+body.touch .betrow { height: 28dp; }
+
+.go { margin-top: 6dp; text-align: center; height: 26dp; line-height: 26dp; border-radius: 3dp; color: #fff; font-size: 16dp; border: 1dp #f2c84a; decorator: horizontal-gradient(#b4781a #7a4a0c); }
+.go.dis { color: #8c94c4; border-color: #4a5296; decorator: none; background-color: #1e2250; }
+.go.press { decorator: horizontal-gradient(#e0a030 #a8741a); }
+.go .kh { color: #ffe9b0; }
+.foot { display: flex; flex-direction: row; justify-content: flex-end; margin-top: 6dp; }
+.fb { height: 18dp; line-height: 18dp; padding: 0 8dp; margin-left: 4dp; border-radius: 3dp; color: #fff; border: 1dp #8c96e8; background-color: #2a3470; }
+body.touch .fb { height: 24dp; line-height: 24dp; }
+
+/* 배당표 */
+.pay { flex: 1 1 0; }
+.pay.front { border: 2dp #f2c84a; }
+#mach.back { opacity: 0.45; }
+.ph { display: flex; flex-direction: row; align-items: center; height: 24dp; margin-bottom: 2dp; color: #ff9a9a; }
+.ph img { margin-right: 6dp; }
+.prow { display: flex; flex-direction: row; height: 20dp; align-items: center; }
+.half { flex: 1 1 0; display: flex; flex-direction: row; align-items: center; height: 20dp; }
+.half + .half { border-left: 1dp #3a427a; padding-left: 6dp; }
+.ic { width: 16dp; height: 20dp; margin-right: 1dp; display: flex; justify-content: center; align-items: center; background-color: #f0e9f0; border-radius: 2dp; overflow: hidden; }
+.ic.any { background-color: #2a3470; color: #cfd3ff; font-size: 10dp; }
+.mult { margin-left: 5dp; color: #ffd75e; }
+.raw { color: #cfd3ff; }
+.pfoot { display: flex; flex-direction: row; justify-content: flex-end; margin-top: 4dp; }
+
+/* 위에 뜨는 창 */
+.ov { position: absolute; left: 0; top: 0; width: 100%; height: 100%; display: flex; justify-content: center; align-items: center; background-color: #070a1cb0; }
+.ov .panel { width: 240dp; padding: 8dp 12dp 10dp 12dp; }
+.ov .q { text-align: center; margin: 8dp 0 10dp 0; font-size: 16dp; line-height: 20dp; color: #fff; }
+.btns { display: flex; flex-direction: row; justify-content: center; }
+.btn { width: 92dp; margin: 0 5dp; height: 24dp; line-height: 24dp; text-align: center; border-radius: 3dp; color: #fff; border: 1dp #8c96e8; background-color: #2a3470; }
+.btn.yes { border-color: #f2c84a; decorator: horizontal-gradient(#b4781a #7a4a0c); }
+body.touch .btn { height: 30dp; line-height: 30dp; }
+#helpov { position: absolute; left: 0; top: 0; width: 100%; height: 100%; box-sizing: border-box; padding: 10dp 14dp; background-color: #070a1cd8; display: flex; flex-direction: column; }
+</style></head>
+<body data-model="slot" data-class-narrow="d.narrow">
+<div id="wrap">
+  <div id="mach" class="panel gold pop" data-class-back="d.help">
+    <div class="title">{{d.title}}</div>
+    <div class="coinrow"><span class="label">{{d.coin_t}}</span><span class="v">{{d.coin}}</span></div>
+
+    <div id="reels">
+      <div data-for="r : d.reels" class="reel" data-class-spin="r.spin">
+        <div class="cell" data-if="r.two" data-style-top="(2 + r.drop - 60) + 'dp'">
+          <img data-if="r.b != ''" data-attr-src="r.b" data-style-width="(r.b_hd ? r.b_dw : r.b_w * 2) + 'dp'" data-style-height="(r.b_hd ? r.b_dh : r.b_h * 2) + 'dp'"/>
+        </div>
+        <div class="cell" data-style-top="(2 + r.drop) + 'dp'">
+          <img data-if="r.a != ''" data-attr-src="r.a" data-style-width="(r.a_hd ? r.a_dw : r.a_w * 2) + 'dp'" data-style-height="(r.a_hd ? r.a_dh : r.a_h * 2) + 'dp'"/>
+        </div>
+      </div>
+      <div id="resov" data-if="d.res_st" key="ok">
+        <img data-if="d.res != ''" data-attr-src="d.res" data-style-width="(d.res_w * 2) + 'dp'" data-style-height="(d.res_h * 2) + 'dp'"/>
+        <div class="won" data-if="d.win > 0">+{{d.win}}</div>
+      </div>
+    </div>
+    <div class="stops">
+      <div data-for="r : d.reels" class="stop" data-class-off="!r.can_stop" data-attr-key="r.can_stop ? r.k : ''"><span class="kh" data-if="!d.pad">{{r.k}}</span><span class="kh" data-if="d.pad">{{r.pk}}</span>멈춤</div>
+    </div>
+
+    <div class="betrow">
+      <div class="bb" data-class-off="!d.can_down" data-attr-key="d.can_down ? 'down' : ''"><span class="kh">{{'down' | key}}</span>최소</div>
+      <div class="bb" data-class-off="!d.can_down" data-attr-key="d.can_down ? 'left' : ''"><span class="kh">{{'left' | key}}</span>−1</div>
+      <div class="betv"><span class="label">BET</span><span class="num">{{d.bet}}</span></div>
+      <div class="bb" data-class-off="!d.can_up" data-attr-key="d.can_up ? 'right' : ''"><span class="kh">{{'right' | key}}</span>+1</div>
+      <div class="bb" data-class-off="!d.can_up" data-attr-key="d.can_up ? 'up' : ''" style="margin-right: 0;"><span class="kh">{{'up' | key}}</span>최대</div>
+    </div>
+    <div class="resv"><span class="label">RESULT</span><span class="num" data-class-hit="d.win > 0">{{d.win}}</span></div>
+
+    <div class="go" data-class-dis="!d.ok_on" data-attr-key="d.ok_on ? 'ok' : ''"><span class="kh">{{'ok' | key}}</span>{{d.ok_t}}</div>
+    <div class="foot">
+      <div class="fb" key="star"><span class="kh" data-if="!d.layer">{{'star' | key}}</span>도움말</div>
+      <div class="fb" key="clear"><span class="kh" data-if="!d.layer">{{'clear' | key}}</span><span class="kh" data-if="d.layer">{{d.kclr}}</span>나가기</div>
+    </div>
+  </div>
+
+  <div id="side">
+    <div class="panel pay" data-class-front="d.help">
+      <div class="title">배당표</div>
+      <div class="ph"><img data-if="d.gen != ''" data-attr-src="d.gen" data-style-width="(d.gen_hd ? d.gen_dw : d.gen_w / 2) + 'dp'" data-style-height="(d.gen_hd ? d.gen_dh : d.gen_h / 2) + 'dp'"/><span>{{d.pay_head}}</span></div>
+      <div data-for="p : d.pay"><div class="prow" data-if="p.use">
+        <div class="half">
+          <span data-if="p.ok0" class="row-flex">
+            <span class="ic" data-class-any="p.a00"><span data-if="p.a00">?</span><img data-if="p.s00 != ''" data-attr-src="p.s00" data-style-width="(p.s00_hd ? p.s00_dw : p.s00_w / 2) + 'dp'" data-style-height="(p.s00_hd ? p.s00_dh : p.s00_h / 2) + 'dp'"/></span>
+            <span class="ic" data-class-any="p.a01"><span data-if="p.a01">?</span><img data-if="p.s01 != ''" data-attr-src="p.s01" data-style-width="(p.s01_hd ? p.s01_dw : p.s01_w / 2) + 'dp'" data-style-height="(p.s01_hd ? p.s01_dh : p.s01_h / 2) + 'dp'"/></span>
+            <span class="ic" data-class-any="p.a02"><span data-if="p.a02">?</span><img data-if="p.s02 != ''" data-attr-src="p.s02" data-style-width="(p.s02_hd ? p.s02_dw : p.s02_w / 2) + 'dp'" data-style-height="(p.s02_hd ? p.s02_dh : p.s02_h / 2) + 'dp'"/></span>
+            <span class="mult">{{p.m0}}</span>
+          </span>
+          <span data-if="!p.ok0" class="raw">{{p.raw0}}</span>
+        </div>
+        <div class="half">
+          <span data-if="p.ok1" class="row-flex">
+            <span class="ic" data-class-any="p.a10"><span data-if="p.a10">?</span><img data-if="p.s10 != ''" data-attr-src="p.s10" data-style-width="(p.s10_hd ? p.s10_dw : p.s10_w / 2) + 'dp'" data-style-height="(p.s10_hd ? p.s10_dh : p.s10_h / 2) + 'dp'"/></span>
+            <span class="ic" data-class-any="p.a11"><span data-if="p.a11">?</span><img data-if="p.s11 != ''" data-attr-src="p.s11" data-style-width="(p.s11_hd ? p.s11_dw : p.s11_w / 2) + 'dp'" data-style-height="(p.s11_hd ? p.s11_dh : p.s11_h / 2) + 'dp'"/></span>
+            <span class="ic" data-class-any="p.a12"><span data-if="p.a12">?</span><img data-if="p.s12 != ''" data-attr-src="p.s12" data-style-width="(p.s12_hd ? p.s12_dw : p.s12_w / 2) + 'dp'" data-style-height="(p.s12_hd ? p.s12_dh : p.s12_h / 2) + 'dp'"/></span>
+            <span class="mult">{{p.m1}}</span>
+          </span>
+          <span data-if="!p.ok1" class="raw">{{p.raw1}}</span>
+        </div>
+      </div></div>
+      <div class="pfoot" data-if="d.help"><div class="fb" key="clear"><span class="kh">{{'clear' | key}}</span>닫기</div></div>
+    </div>
+  </div>
+</div>
+
+<!-- 좁은 화면: 도움말 상태에서만 배당표를 위에 -->
+<div id="helpov" data-if="d.help &amp;&amp; d.narrow">
+  <div class="panel pay front">
+    <div class="title">배당표</div>
+    <div class="ph"><span>{{d.pay_head}}</span></div>
+    <div data-for="p : d.pay"><div class="prow" data-if="p.use">
+      <div class="half"><span data-if="p.ok0" class="row-flex">
+        <span class="ic" data-class-any="p.a00"><span data-if="p.a00">?</span><img data-if="p.s00 != ''" data-attr-src="p.s00" data-style-width="(p.s00_hd ? p.s00_dw : p.s00_w / 2) + 'dp'" data-style-height="(p.s00_hd ? p.s00_dh : p.s00_h / 2) + 'dp'"/></span>
+        <span class="ic" data-class-any="p.a01"><span data-if="p.a01">?</span><img data-if="p.s01 != ''" data-attr-src="p.s01" data-style-width="(p.s01_hd ? p.s01_dw : p.s01_w / 2) + 'dp'" data-style-height="(p.s01_hd ? p.s01_dh : p.s01_h / 2) + 'dp'"/></span>
+        <span class="ic" data-class-any="p.a02"><span data-if="p.a02">?</span><img data-if="p.s02 != ''" data-attr-src="p.s02" data-style-width="(p.s02_hd ? p.s02_dw : p.s02_w / 2) + 'dp'" data-style-height="(p.s02_hd ? p.s02_dh : p.s02_h / 2) + 'dp'"/></span>
+        <span class="mult">{{p.m0}}</span></span><span data-if="!p.ok0" class="raw">{{p.raw0}}</span></div>
+      <div class="half"><span data-if="p.ok1" class="row-flex">
+        <span class="ic" data-class-any="p.a10"><span data-if="p.a10">?</span><img data-if="p.s10 != ''" data-attr-src="p.s10" data-style-width="(p.s10_hd ? p.s10_dw : p.s10_w / 2) + 'dp'" data-style-height="(p.s10_hd ? p.s10_dh : p.s10_h / 2) + 'dp'"/></span>
+        <span class="ic" data-class-any="p.a11"><span data-if="p.a11">?</span><img data-if="p.s11 != ''" data-attr-src="p.s11" data-style-width="(p.s11_hd ? p.s11_dw : p.s11_w / 2) + 'dp'" data-style-height="(p.s11_hd ? p.s11_dh : p.s11_h / 2) + 'dp'"/></span>
+        <span class="ic" data-class-any="p.a12"><span data-if="p.a12">?</span><img data-if="p.s12 != ''" data-attr-src="p.s12" data-style-width="(p.s12_hd ? p.s12_dw : p.s12_w / 2) + 'dp'" data-style-height="(p.s12_hd ? p.s12_dh : p.s12_h / 2) + 'dp'"/></span>
+        <span class="mult">{{p.m1}}</span></span><span data-if="!p.ok1" class="raw">{{p.raw1}}</span></div>
+    </div></div>
+    <div class="pfoot"><div class="fb" key="clear"><span class="kh">{{'clear' | key}}</span>닫기</div></div>
+  </div>
+</div>
+
+<!-- 필드 카지노 경품(7·7·7) -->
+<div class="ov" data-if="d.prize_st &amp;&amp; !d.exit &amp;&amp; !d.help"><div class="panel gold pop">
+  <div class="title">경품</div>
+  <div class="q">{{d.prize}}</div>
+  <div class="btns"><div class="btn yes" key="ok"><span class="kh">{{'ok' | key}}</span>받기</div></div>
+</div></div>
+
+<!-- 끝내기 확인 -->
+<div class="ov" data-if="d.exit"><div class="panel gold pop">
+  <div class="title">{{d.title}}</div>
+  <div class="q">{{d.ask}}</div>
+  <div class="btns">
+    <div class="btn yes" key="ok"><span class="kh">{{'ok' | key}}</span>예</div>
+    <div class="btn" key="clear"><span class="kh">{{'clear' | key}}</span>아니오</div>
+  </div>
+</div></div>
+</body></rml>

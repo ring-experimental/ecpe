@@ -1,0 +1,129 @@
+<rml><head><link type="text/rcss" href="base.rcss"/><link type="text/rcss" href="fmcore.rcss"/><link type="text/rcss" href="fmshell.rcss"/>
+<!-- 아이템(화면 1, 0x31b18). 왼쪽: 분류 4개(원작은 두 쪽에 두 개씩) + 목록. 가운데: 고른 아이템 설명(원작의 흐르는 한 줄을 다 펼침)과
+     핫슬롯 / 판매 개수·확인. 오른쪽: 파티(사용 대상). 상점의 판매(판매 모드)도 같은 문서다.
+     넓은 화면(wide3, 520dp 이상)에서는 파티 단을 늘 보이고 사용 대상을 고를 때만 강조한다.
+     그보다 좁으면 사용 대상 단계에서만 파티 단을 보이고, 아주 좁으면(narrow) 그때 목록을 접는다(원작도 그때는 목록을 그리지 않는다).
+     필드 메뉴 틀 안(body.shell)에서는 레일 몫만큼 좁아 두 단이다: 목록 | 설명·핫슬롯, 사용 대상을 고를 때는 오른쪽 단이 파티가 된다.
+     키 안내는 틀의 고정 버튼 띠(<fmbar/>)가 맡고, 틀이 없는 상점 판매에서만 아래 키 안내 띠를 쓴다. -->
+<style>
+#list { flex: 0 0 52%; width: 52%; display: flex; flex-direction: column; }
+body.wide3 #list { flex: 0 0 38%; width: 38%; }
+body.wide3.sell #list { flex: 0 0 52%; width: 52%; }
+#pcol { display: none; flex: 1 1 0; min-width: 0; margin-left: 8dp; flex-direction: column; }
+body.narrow #pcol { margin-left: 0; }
+body.wide3 #pcol { display: flex; flex: 0 0 31%; width: 31%; }
+body.s1 #pcol { display: flex; }
+body.sell #pcol { display: none; }
+body.narrow #list { flex: 0 0 60%; width: 60%; }
+body.narrow #cats { flex-wrap: wrap; }
+body.narrow #cats .tab { flex: 0 0 49%; width: 49%; box-sizing: border-box; padding: 2dp 0; margin-right: 2%; margin-bottom: 2dp; height: 18dp; }
+body.narrow #cats .tab:nth-child(2n) { margin-right: 0; }
+body.narrow #desc .head, body.narrow #desc .sep { display: none; }
+body.narrow #desc .text { margin-top: 0; }
+body.narrow.hide-list #list { display: none; }
+#cats { display: flex; flex-direction: row; margin-bottom: 4dp; }
+#cats .tab { flex: 1 1 0; min-width: 0; padding: 2dp 0; text-align: center; white-space: nowrap; overflow: hidden; margin-right: 2dp; }
+#cats .tab:last-child { margin-right: 0; }
+#cats .tab.dis { color: #5c6290; background-color: #0a0e2860; border-color: #30366a; }
+body.narrow #cats .tab, body.wide3 #cats .tab { font-size: 10dp; }
+#rows { flex: 1 1 0; min-height: 0; }
+#desc { flex: 0 0 auto; }
+#desc .head { display: flex; flex-direction: row; align-items: center; height: 18dp; }
+#desc .head .name { flex: 1 1 0; min-width: 0; white-space: nowrap; overflow: hidden; color: #fff; }
+#desc .text { margin-top: 4dp; color: #e8ebff; min-height: 28dp; word-break: break-word; }
+body.narrow #desc .text { min-height: 14dp; }
+#hot { margin-top: 6dp; flex: 0 0 auto; }
+#hot .slots { display: flex; flex-direction: row; flex-wrap: wrap; }
+#hot .slot { width: 22dp; height: 22dp; margin: 0 3dp 3dp 0; box-sizing: border-box; border: 1dp #4a5296; border-radius: 2dp; background-color: #0a0e2880;
+             display: flex; justify-content: center; align-items: center; }
+#hot .slot.used { border-color: #8c96e8; }
+#hot .slot.next { border-color: #ffffce; }
+#hot .names { margin-top: 2dp; color: #cfd3ff; }
+#tgt { flex: 0 0 auto; display: flex; flex-direction: column; }
+#tgt .char { height: 44dp; }
+#tgt .head { display: flex; flex-direction: row; align-items: center; height: 18dp; margin-bottom: 4dp; }
+#tgt .head .name { flex: 1 1 0; min-width: 0; white-space: nowrap; overflow: hidden; color: #fff; }
+#sell { margin-top: 6dp; flex: 0 0 auto; }
+#sell .line { display: flex; flex-direction: row; align-items: center; height: 18dp; }
+#sell .line .label { flex: 1 1 0; }
+#sell .qty { color: #fff; }
+#sell .arrow { color: #ffd75e; margin: 0 4dp; }
+#sell .ask { margin-top: 4dp; color: #fff; }
+#sell .yn { display: flex; flex-direction: row; margin-top: 4dp; }
+#sell .yn .menu-item { flex: 1 1 0; text-align: center; margin-right: 4dp; }
+#gold { margin-top: 6dp; flex: 0 0 auto; display: flex; flex-direction: row; }
+#gold .num { flex: 1 1 0; text-align: right; }
+.spacer { flex: 1 1 0; }
+/* 필드 메뉴 틀 안: 두 단. 사용 대상(상태 1)이면 오른쪽 단이 설명 대신 파티(아이템 이름은 제목에) */
+body.shell.s1 .side { display: none; }
+body.shell #tgt .head { display: none; }
+body.shell .keybar { display: none; }
+/* 상점 판매(틀 없음)의 버튼도 구입 화면·틀과 같이 오른쪽 아래에 모은다(「이전」이 오른쪽 끝) */
+body.sell .keybar { text-align: right; }
+body.sell .keybar .pair:last-child { margin-right: 0; }
+/* 판매 화면 버튼도 같은 약속: 방향 안내는 빼고 「판매/확인」「이전」 두 칸을 같은 폭으로(단계가 바뀌어도 자리가 안 변한다) */
+body.sell .keybar .pair.nav { display: none; }
+body.sell .keybar .pair { display: inline-block; width: 84dp; height: 24dp; line-height: 24dp; box-sizing: border-box; padding: 0; margin: 0 0 0 3dp; text-align: center;
+  font-size: 12dp; color: #fff; background-color: #2a3470; border: 1dp #8c96e8; border-radius: 3dp; }
+body.sell .keybar .pair.off { display: none; }
+body.sell .keybar .pair.hover { background-color: #3a46a0; border-color: #ffffce; }
+body.sell .keybar .pair .key { border-width: 0; background-color: transparent; font-size: 10dp; color: #cfd3ff; padding: 0; margin: 0 4dp 0 0; }
+#cats .tab.hover { color: #fff; border-color: #ffffce; }
+#tgt .char.hover { border-color: #ffffce; }
+#tgt .title .sub { color: #ffd75e; }
+</style></head>
+<body data-model="fm_item" data-class-narrow="d.narrow" data-class-wide3="d.wide3" data-class-s1="d.state == 1" data-class-sell="d.sell" data-class-hide-list="d.state == 1 || d.state == 3 || d.state == 4" data-class-shell="d.shell" data-class-chars="d.chars">
+<div class="screen col-flex" data-class-dim="!d.shell">
+  <div class="cols">
+    <div id="list" class="panel pop" data-class-focus="d.state == 0 || d.state == 5">
+      <div class="title"><span data-if="!d.sell">아이템</span><span data-if="d.sell">아이템 판매</span><span class="sub">{{d.total}}종</span></div>
+      <div id="cats"><span class="shk" shoulder="prev" key="left" data-if="d.state == 0"></span><span class="shk" shoulder="next" key="right" data-if="d.state == 0"></span><div data-for="t : d.cats" class="tab" nav="cats" data-attr-idx="it_index" data-class-sel="it_index == d.cat" data-class-dis="t.dis">{{t.name}}</div></div>
+      <vlist id="rows" scroll="ilist" for="it : d.items" nav="items" idx="it.i" off="!it.on"
+             sel="it.sel &amp;&amp; (d.state == 0 || d.state == 5)" idle="it.sel &amp;&amp; d.state != 0 &amp;&amp; d.state != 5"
+             icon="it.icon" label="it.name" value="'×' + it.count" empty="d.total == 0" empty-text="-"/>
+    </div>
+    <div class="side" data-class-off="d.state == 1 &amp;&amp; !d.wide3">
+      <div id="desc" class="panel pop" data-class-focus="d.state == 2">
+        <div class="head" data-if="d.has_cur"><span class="ic"><img data-if="d.cur_icon != ''" data-attr-src="d.cur_icon"/></span><span class="name">{{d.cur_name}}</span><span class="count">×{{d.cur_count}}</span></div>
+        <div class="head dimtx" data-if="!d.has_cur"><span>-</span></div>
+        <div class="sep"></div>
+        <div class="text">{{d.cur_desc}}</div>
+      </div>
+      <div id="hot" class="panel pop" data-if="!d.sell &amp;&amp; (d.state == 5 || (d.state == 0 &amp;&amp; d.cat == 0))" data-class-focus="d.state == 5">
+        <div class="title">핫슬롯<span class="sub">{{d.hot_n}}/8</span></div>
+        <div class="slots"><div data-for="h : d.hot" class="slot" data-class-used="h.used" data-class-next="h.next &amp;&amp; d.state == 5"><img data-if="h.icon != ''" data-attr-src="h.icon"/></div></div>
+        <div class="names small" data-if="d.state == 5 &amp;&amp; !d.narrow"><span data-for="h : d.hot"><span data-if="h.used">{{it_index + 1}}.{{h.name}} </span></span></div>
+      </div>
+      <div id="sell" class="panel pop focus" data-if="d.sell &amp;&amp; (d.state == 3 || d.state == 4)">
+        <div class="title">판매</div>
+        <div class="line"><span class="label">{{d.t_sell_n}}</span><span class="arrow" key="left" data-if="d.state == 3">◀</span><span class="qty">{{d.sell_n}}</span><span class="arrow" key="right" data-if="d.state == 3">▶</span></div>
+        <div class="line"><span class="label">{{d.t_sell_gold}}</span><span class="gold">{{d.price}} G</span></div>
+        <div data-if="d.state == 4">
+          <div class="ask">{{d.t_ask}}</div>
+          <div class="yn"><div class="menu-item" nav="yn" idx="0" data-class-sel="d.yes">{{d.t_yes}}</div><div class="menu-item" nav="yn" idx="1" data-class-sel="!d.yes">{{d.t_no}}</div></div>
+        </div>
+      </div>
+      <div class="spacer"></div>
+      <div id="gold" class="panel flat" data-if="d.sell"><span class="label">소지금</span><span class="num gold">{{d.gold}} G</span></div>
+    </div>
+    <div id="pcol">
+        <div id="tgt" class="panel pop" data-class-focus="d.state == 1">
+          <div class="title"><span data-if="d.state != 1">파티</span><span data-if="d.state == 1 &amp;&amp; d.all">사용 대상: 파티 전원</span><span data-if="d.state == 1 &amp;&amp; !d.all">사용 대상</span><span class="sub" data-if="d.state == 1 &amp;&amp; d.shell">{{d.cur_name}} ×{{d.cur_count}}</span></div>
+          <div class="head" data-if="d.state == 1 &amp;&amp; !d.wide3"><span class="ic"><img data-if="d.cur_icon != ''" data-attr-src="d.cur_icon"/></span><span class="name">{{d.cur_name}}</span><span class="count">×{{d.cur_count}}</span></div>
+          <div data-for="p : d.party" class="char" nav="party" data-attr-idx="p.on ? p.slot : -1" data-class-off="!p.on" data-class-sel="d.state == 1 &amp;&amp; (d.all || p.slot == d.tgt)" data-class-down="p.down">
+            <div class="face portrait"><img data-attr-src="p.face"/><span class="lvtag">LV{{p.lv}}</span><span class="downtag" data-if="p.down">전투불능</span></div>
+            <div class="info">
+              <div class="line"><span class="nm">{{p.name}}</span><span class="lvl"><span class="label small">LV</span><span class="num gap">{{p.lv}}</span></span></div>
+              <div class="stat"><span class="label">HP</span><div class="gauge hp"><div class="fill" data-style-width="p.hp_pct + '%'"></div></div><span class="v hpv">{{p.hp}}/{{p.hp_max}}</span></div>
+              <div class="stat"><span class="label">MP</span><div class="gauge mp"><div class="fill" data-style-width="p.mp_pct + '%'"></div></div><span class="v mpv">{{p.mp}}/{{p.mp_max}}</span></div>
+            </div>
+          </div>
+        </div>
+    </div>
+  </div>
+  <div class="panel flat keybar keys"><span class="pair kb" data-for="k : d.keys" data-class-off="!k.on" data-class-nav="k.nav" data-attr-key="k.key"><span class="key">{{k.k | key}}</span>{{k.t}}</span></div>
+</div>
+<div data-if="d.shell"><fmbar/></div>
+<!-- 메시지가 떠 있는 동안 원본은 OK/CLR만 받아 메시지를 닫는다. 터치·마우스는 화면 어디를 눌러도 닫히게 한다(막이 버튼 띠를 덮는다) -->
+<div class="toast-wrap" key="clear" data-if="d.msg != ''"><div class="toast">{{d.msg}}</div></div>
+</body></rml>

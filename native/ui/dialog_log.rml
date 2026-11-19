@@ -1,0 +1,40 @@
+<rml><head><link type="text/rcss" href="base.rcss"/>
+<title>대사 기록</title>
+<!-- 대사 기록(restored/ui_dialog.c dlog_*, 원작에 없다). 이번 대화에서 지나간 대사를 다시 본다. 대사가 끝나 필드로 돌아가면 지워진다.
+     여닫기: 대사창의 LOG 버튼·원본 0번 키(pick "dlog"). 넘기기: 끌기·휠·오른쪽 스틱(scroll), 위아래 키(pick "dlogs" 0 위 1 아래).
+     열려 있는 동안 원본 대사는 멈춰 있어 키가 가지 않는다. 그래서 키는 hotkey 요소로 받는다(host/ui.h). -->
+<style>
+#wrap { position: absolute; left: 0; top: 0; width: 100%; height: 100%; box-sizing: border-box; padding: 12dp 14dp; background-color: #070a1cc8; display: flex; justify-content: center; }
+#box { width: 100%; max-width: 460dp; display: flex; flex-direction: column; }
+#head { display: flex; flex-direction: row; align-items: center; }
+#head .t { flex: 1 1 0; }
+.xbtn { flex: 0 0 auto; margin: -2dp 0; padding: 0 8dp; height: 16dp; line-height: 16dp; font-size: 10dp; color: #fff; background-color: #2a3470; border: 1dp #8c96e8; border-radius: 3dp; }
+body.touch .xbtn { height: 20dp; line-height: 20dp; font-size: 12dp; margin: -4dp 0; }
+#list { flex: 1 1 0; min-height: 0; overflow-y: auto; }
+#list scrollbarvertical { width: 4dp; margin-left: 3dp; }
+#list scrollbarvertical slidertrack { background-color: #ffffff10; }
+#list scrollbarvertical sliderbar { background-color: #8c96e8a0; border-radius: 2dp; min-height: 14dp; }
+#list scrollbarvertical sliderarrowdec, #list scrollbarvertical sliderarrowinc { width: 0; height: 0; }
+.e { padding: 4dp 4dp 5dp 4dp; border-bottom: 1dp #2c3470; }
+.e .n { color: #ffd75e; font-size: 10dp; line-height: 12dp; }
+.e .x { white-space: pre-wrap; line-height: 15dp; color: #f4f6ff; }
+.e.last .x { color: #fff; }
+#foot { margin-top: 4dp; text-align: right; }
+.gone { display: none; }
+</style></head>
+<body data-model="dialog_log">
+<div id="wrap">
+  <div id="box" class="panel pop">
+    <div id="head" class="title"><span class="t">대사 기록</span><span class="xbtn" pick="dlog" idx="0">닫기</span></div>
+    <div id="list" scroll="dlog">
+      <div class="e" data-for="it : d.items"><div class="n" data-class-gone="it.name == ''">{{it.name}}</div><div class="x">{{it.text}}</div></div>
+    </div>
+    <div id="foot" class="keys">
+      <span class="kb nav"><span class="key">↑↓</span>넘기기</span><span class="kb" pick="dlog" idx="0"><span class="key">{{'clear' | key}}</span>닫기</span>
+    </div>
+  </div>
+</div>
+<!-- 키: 위아래 = 넘기기, 취소·결정·0 = 닫기 -->
+<span class="shk" hotkey="up" pick="dlogs" idx="0"></span><span class="shk" hotkey="down" pick="dlogs" idx="1"></span>
+<span class="shk" hotkey="clear" pick="dlog" idx="0"></span><span class="shk" hotkey="ok" pick="dlog" idx="0"></span><span class="shk" hotkey="0" pick="dlog" idx="0"></span>
+</body></rml>

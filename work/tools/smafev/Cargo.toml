@@ -1,0 +1,15 @@
+[package]
+name = "smafev"
+version = "0.1.0"
+edition = "2021"
+
+# 게임이 실행 중에 넘기는 SMAF(MMF)를 호스트 audio.c가 읽는 이벤트 레코드로 바꾼다.
+# 크로노스 윙 smaf2ev와 같은 변환이며, 이 게임은 소리를 res.gmf 안에 압축해 두어 빌드 때 미리 바꿀 수 없다.
+[lib]
+crate-type = ["staticlib"]
+
+[dependencies]
+smaf-player = "=0.1.4"
+
+
+[workspace]

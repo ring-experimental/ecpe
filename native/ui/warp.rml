@@ -1,0 +1,45 @@
+<rml><head><link type="text/rcss" href="base.rcss"/><link type="text/rcss" href="fmshell.rcss"/>
+<!-- 귀환 주문서 목록(restored/warp.c). 원작에 없는 화면이라 F2(원작 그리기)에서도 뜬다(ui_force).
+     가 본 마을을 최근 방문 순으로 늘어놓고 지금 있는 곳은 회색으로 표시한다(다른 RPG의 텔레포트·귀환 목록과 같은 약속).
+     키: ↑↓ 고르기, OK 이동, CLR 취소. 터치: 줄을 누르면 고르고, 고른 줄을 한 번 더 누르거나 [이동]을 누르면 간다(pick="warp", idx=줄 번호).
+     목록은 일곱 줄 높이의 scroll 상자다(손가락 끌기·휠·게임패드 오른쪽 스틱, 키로 옮기면 그 줄이 보이게).
+     필드 메뉴 틀 안(body.shell)에서는 내용 자리를 채우고(.fmarea, 목록은 남은 높이 전부), 이동·취소는 고정 버튼 띠(「이동」「이전」). -->
+<style>
+.dlgw { position: absolute; left: 0; top: 0; width: 100%; height: 100%; display: flex; justify-content: center; align-items: center; background-color: #070a1cb0; }
+.dlgw .panel { width: 320dp; padding: 6dp 10dp 8dp 10dp; }
+.hint { color: #cfd3ff; font-size: 10dp; line-height: 12dp; margin-bottom: 4dp; }
+#wl { max-height: 133dp; } /* 일곱 줄(18+1) */
+body.touch #wl { max-height: 147dp; } /* 터치 줄 20+1 */
+#wl .vrow.dis .vbadge { background-color: #4a5296; color: #cfd3ff; } /* 현재 위치(갈 수 없는 줄)의 딱지는 흐리게 */
+.foot { display: flex; flex-direction: row; justify-content: space-between; align-items: center; margin-top: 6dp; }
+.foot .have { flex: 1 1 0; min-width: 0; color: #cfd3ff; font-size: 10dp; line-height: 12dp; }
+.btns { display: flex; flex-direction: row; flex: 0 0 auto; }
+.btn { flex: 0 0 auto; padding: 0 12dp; min-width: 70dp; box-sizing: border-box; height: 20dp; line-height: 20dp; margin-left: 6dp; text-align: center; background-color: #2a3470; border: 1dp #8c96e8; border-radius: 3dp; color: #fff; white-space: nowrap; }
+.btn.go { decorator: horizontal-gradient(#3f78f0 #2a4ab8); border-color: #a8c4ff; }
+.btn.off { opacity: 0.4; }
+body.touch .btn { height: 28dp; line-height: 28dp; }
+body.narrow .dlgw .panel { width: 236dp; }
+body.shell .dlgw { background-color: transparent; align-items: stretch; justify-content: stretch; display: flex; flex-direction: column; }
+body.shell .dlgw .panel { width: auto; flex: 1 1 0; display: flex; flex-direction: column; }
+body.shell #wl { max-height: none; flex: 1 1 0; }
+body.shell .btns { display: none; }
+body.shell .foot { flex: 0 0 auto; }
+body.narrow .foot { display: block; }
+body.narrow .btns { margin-top: 4dp; justify-content: flex-end; }
+</style></head>
+<body data-model="warp" data-class-narrow="d.narrow" data-class-shell="d.shell" data-class-chars="d.chars">
+<div id="dlg" class="dlgw fmarea"><div class="panel gold pop">
+  <div class="title">귀환 주문서<span class="sub">{{d.n}}곳</span></div>
+  <div class="hint">돌아갈 마을을 고르세요. 가장 최근에 들른 곳이 맨 위에 있습니다.</div>
+  <vlist id="wl" scroll="wlist" for="it : d.items" pick="warp" idx="it.idx" sel="it.idx == d.cursor" dis="it.cur"
+         label="it.name" badge="it.cur ? '현재 위치' : (it.newest ? '최근' : '')"/>
+  <div class="foot">
+    <span class="have">주문서 {{d.have}}개 보유 · 이동하면 1개 사용</span>
+    <div class="btns">
+      <div class="btn" key="clear"><span>{{'clear' | key}} 취소</span></div>
+      <div class="btn go" key="ok" data-class-off="!d.can"><span>{{'ok' | key}} 이동</span></div>
+    </div>
+  </div>
+</div></div>
+<div data-if="d.shell"><fmbar/></div>
+</body></rml>

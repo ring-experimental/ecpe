@@ -1,0 +1,33 @@
+<rml><head><link type="text/rcss" href="base.rcss"/>
+<style>
+#l { width: 150dp; } #r { margin-left: 8dp; }
+</style></head>
+<body data-model="_gallery">
+<div class="screen dim col-flex">
+  <div class="row-flex grow">
+    <div id="l" class="panel pop col-flex">
+      <div class="title">아이템<span class="sub">3/20</span></div>
+      <div class="tabs"><div class="tab sel">소비물</div><div class="tab">장비물</div></div>
+      <div class="list grow gap-v">
+        <div class="row sel"><span class="name">라이트힐링</span><span class="val">×2</span></div>
+        <div class="row"><span class="name">홀리워터</span><span class="val">×1</span></div>
+        <div class="row dis"><span class="name">낡은 열쇠</span><span class="val">×1</span></div>
+      </div>
+      <div class="more">▼</div>
+    </div>
+    <div id="r" class="panel pop grow col-flex">
+      <div class="title">아크<span class="sub">LV 3</span></div>
+      <h2>상태</h2>
+      <div class="row-flex"><span class="label">HP</span><span class="num gap">88/123</span></div>
+      <div class="gauge hp"><div class="fill" style="width: 71%;"></div></div>
+      <div class="row-flex gap-v"><span class="label">MP</span><span class="num gap">25/40</span></div>
+      <div class="gauge mp"><div class="fill" style="width: 62%;"></div></div>
+      <div class="sep"></div>
+      <div class="menu-item sel">스테이터스</div><div class="menu-item">퀘스트</div>
+      <div class="grow"></div>
+      <div><span class="gold">210 G</span> <span class="good">+12</span> <span class="bad">-3</span> <span class="dimtx small">00:01:38</span> <span class="big outline">제라노스 성</span></div>
+    </div>
+  </div>
+  <div class="panel flat gap-v"><div class="keys"><span class="key">OK</span>사용<span class="key">*</span>핫슬롯<span class="key">CLR</span>나가기</div></div>
+</div>
+</body></rml>

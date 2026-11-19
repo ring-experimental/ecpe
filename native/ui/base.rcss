@@ -1,0 +1,121 @@
+/* 에픽크로니클PE 메뉴 공통 스타일. 1dp는 게임 화면 1픽셀(높이 320 기준)이고 화면은 폭 240~640dp × 높이 320dp다.
+   색은 원작 메뉴의 남색 바탕, 보라 제목 띠, 파란 선택 띠, 금색 강조를 따른다. 문서는 이 파일의 부품만으로 짜고,
+   화면에만 필요한 배치는 그 문서의 <style>에 둔다. 그림자·필터·linear-gradient()는 렌더러가 지원하지 않는다
+   flex 컨테이너의 직계 글(태그 없는 글)은 보이지 않으니 반드시 <span>/<div>로 감싼다.
+   (horizontal-gradient/vertical-gradient 장식과 border-radius, opacity, transform, transition, animation은 된다). */
+body { font-family: NeoDunggeunmo; font-size: 12dp; line-height: 14dp; color: #f4f6ff; width: 100%; height: 100%; position: absolute; left: 0; top: 0; }
+div, p, h1, h2 { display: block; }
+span, img { display: inline-block; }
+img { vertical-align: middle; }
+
+/* ---- 배치 ---- */
+.screen { position: absolute; left: 0; top: 0; width: 100%; height: 100%; box-sizing: border-box; padding: 10dp 14dp; }
+.dim { background-color: #070a1cb0; }          /* 뒤의 게임 화면을 가린다 */
+.dim-soft { background-color: #070a1c60; }
+.center { display: flex; justify-content: center; align-items: center; }
+.row-flex { display: flex; flex-direction: row; }
+.col-flex { display: flex; flex-direction: column; }
+.grow { flex: 1 1 0; min-width: 0; min-height: 0; }
+.gap { margin-left: 6dp; }
+.gap-v { margin-top: 6dp; }
+.right { text-align: right; }
+.mid { text-align: center; }
+.nowrap { white-space: nowrap; overflow: hidden; }
+
+/* ---- 창 ---- */
+.panel { box-sizing: border-box; padding: 6dp 8dp; background-color: #161a3eea; border: 1dp #8c96e8; border-radius: 3dp; }
+.panel.flat { border-color: #4a5296; background-color: #10143280; }
+.panel.gold { border-color: #f2c84a; }
+/* 제목 띠: 창 맨 위에 붙인다(.panel 안 첫 자식, 창의 안쪽 여백을 지운다) */
+.title { margin: -6dp -8dp 6dp -8dp; padding: 3dp 8dp; height: 14dp; decorator: horizontal-gradient(#6a3ad6 #2a2a8e); border-radius: 2dp 2dp 0 0; color: #fff; font-effect: outline(1dp #1a1050); }
+.title .sub { float: right; color: #cfd3ff; }
+h2 { color: #aab4ff; font-size: 10dp; line-height: 12dp; margin-bottom: 2dp; } /* 창 안 작은 머리글 */
+.sep { height: 1dp; background-color: #4a5296; margin: 4dp 0; }
+
+/* ---- 목록 ---- */
+.list { overflow: hidden; }
+.row { display: flex; flex-direction: row; align-items: center; height: 16dp; padding: 0 5dp; border-radius: 2dp; box-sizing: border-box; white-space: nowrap; }
+.row .name { flex: 1 1 0; min-width: 0; overflow: hidden; }
+.row .val { flex: 0 0 auto; margin-left: 6dp; color: #cfd3ff; }
+.row.sel { decorator: horizontal-gradient(#3f78f0 #2a4ab8); color: #fff; }
+.row.sel .val { color: #fff; }
+.row.sel-idle { background-color: #2a3470; }      /* 포커스가 다른 창에 있을 때의 선택 줄 */
+.row.dis, .dis { color: #7c84b0; }
+.row .icon { flex: 0 0 auto; margin-right: 4dp; }
+/* 큰 줄(두 줄짜리 카드형 항목) */
+.row.tall { height: 30dp; align-items: flex-start; padding-top: 2dp; }
+
+/* 탭: 가로로 늘어놓는다 */
+.tabs { display: flex; flex-direction: row; }
+.tab { flex: 0 0 auto; padding: 2dp 8dp; margin-right: 2dp; height: 14dp; color: #9aa2d8; background-color: #10143290; border: 1dp #4a5296; border-radius: 3dp 3dp 0 0; }
+.tab.sel { color: #fff; decorator: horizontal-gradient(#6a3ad6 #3a34a8); border-color: #a9a0ff; }
+/* 세로 메뉴(메인 메뉴 등 큰 항목) */
+.menu-item { display: block; height: 20dp; line-height: 20dp; padding: 0 8dp; box-sizing: border-box; white-space: nowrap; margin-bottom: 2dp; border-radius: 3dp; color: #c8cdf6; background-color: #10143270; border: 1dp #00000000; }
+.menu-item.sel { color: #fff; decorator: horizontal-gradient(#3f78f0 #2a4ab8); border-color: #a8c4ff; }
+
+/* ---- 값 ---- */
+.label { color: #9aa2d8; }
+.num { color: #fff; }
+.gold { color: #ffd75e; }
+.good { color: #7df08c; }
+.bad { color: #ff7a7a; }
+.dimtx { color: #8c94c4; }
+.small { font-size: 10dp; line-height: 12dp; }
+.big { font-size: 16dp; line-height: 18dp; }
+.outline { font-effect: outline(1dp #0a0e28); }
+
+/* 게이지: <div class="gauge hp"><div class="fill" data-style-width="d.hp_pct + '%'"></div></div> */
+.gauge { height: 4dp; background-color: #0a0e28; border: 1dp #4a5296; border-radius: 2dp; overflow: hidden; box-sizing: content-box; }
+.gauge .fill { height: 100%; width: 0; }
+.gauge.hp .fill { decorator: horizontal-gradient(#e8483c #ff8a5c); }
+.gauge.mp .fill { decorator: horizontal-gradient(#3c6ce8 #5cc4ff); }
+.gauge.exp .fill { decorator: horizontal-gradient(#d6a82c #ffe37a); }
+.gauge.time .fill { decorator: horizontal-gradient(#3cc86a #b8ff7a); }
+
+/* 키 안내: <div class="keys"><span class="key">OK</span>사용 <span class="key">CLR</span>나가기</div> */
+.keys { color: #cfd3ff; font-size: 10dp; line-height: 12dp; }
+.key { padding: 0 3dp; margin: 0 3dp 0 8dp; height: 12dp; background-color: #2a3470; border: 1dp #8c96e8; border-radius: 2dp; color: #fff; }
+.keys .key:first-child { margin-left: 0; }
+
+/* 게임에서 떼어 낸 그림(초상화, 아이콘). 1px = 1dp로 나온다. 두 배로 키우려면 .x2 */
+.x2 { transform: scale(2); transform-origin: left top; }
+.portrait { border: 1dp #8c96e8; border-radius: 2dp; background-color: #0a0e28; }
+
+/* 선택 표시 화살표와 스크롤 표시 */
+.cursor { color: #ffd75e; }
+.more { color: #ffd75e; text-align: center; height: 8dp; line-height: 8dp; font-size: 10dp; }
+
+/* 여닫는 움직임: 문서가 보이면 body에 open이 붙는다 */
+@keyframes pop-in { from { opacity: 0; transform: translateY(6dp); } to { opacity: 1; transform: translateY(0dp); } }
+@keyframes fade-in { from { opacity: 0; } to { opacity: 1; } }
+body.open .pop { animation: 0.14s cubic-out pop-in; }
+body.open .fade { animation: 0.14s linear-in-out fade-in; }
+
+/* ---- 터치·게임패드(host/ui.h "터치") ----
+   누를 수 있는 요소: key="ok|clear|star|..."(그 키 한 번), nav="<목록>" idx="<번호>"(그 항목 고르기, 다시 누르면 OK), action="settings".
+   키 이름은 장치별로 바꿔 보인다: <span class="key">{{ 'ok' | key }}</span>. 터치로 조작 중이면 body.touch, 패드면 body.pad.
+   키 안내 쌍은 <span class="kb" key="clear"><span class="key">{{'clear'|key}}</span>나가기</span>로 쓴다. 터치에서는 키 모양을 감추고
+   쌍 전체가 버튼이 된다(방향 안내 .nav는 터치에서 뜻이 없어 감춘다). */
+.kb { display: inline-block; margin-left: 8dp; }
+.kb:first-child { margin-left: 0; }
+.kb .key { margin-left: 0; }
+body.touch .keys .key { display: none; }
+body.touch .keys .nav { display: none; }
+body.touch .kb { padding: 0 8dp; height: 20dp; line-height: 20dp; font-size: 12dp; color: #fff; background-color: #2a3470; border: 1dp #8c96e8; border-radius: 3dp; margin-left: 4dp; }
+body.touch .kb:first-child { margin-left: 0; }
+body.touch .keys { line-height: 22dp; }
+/* 누르는 동안(손가락이 올라 있는 동안) */
+[key].press, [nav].press, [action].press { background-color: #3f78f0a0; }
+body.touch .kb.press { background-color: #3f78f0; border-color: #ffffce; }
+/* 화면 전체를 누르면 넘어가는 곳(대사 등): <div class="tapall" key="ok"></div>를 문서 맨 앞에 둔다 */
+.tapall { position: absolute; left: 0; top: 0; width: 100%; height: 100%; }
+.tapall.press { background-color: transparent; }
+/* 게임패드 LB/RB가 누를 곳(host ui_pad_shortcut): shoulder="prev|next"를 단 요소. 보이는 버튼(◀▶)에 달거나, 누를 버튼이 없으면 이 빈 표시를 둔다 */
+.shk { display: inline-block; width: 0; height: 0; overflow: hidden; }
+
+/* 게임패드로 조작할 때만 보이는 안내(어깨 버튼·START처럼 패드에만 있는 조작), 키보드일 때만 보이는 안내 */
+.ponly { display: none; }
+.konly { display: inline-block; }
+body.pad .ponly { display: inline-block; }
+body.pad div.ponly { display: block; }
+body.touch .konly, body.pad .konly { display: none; }

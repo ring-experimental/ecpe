@@ -1,0 +1,21 @@
+<rml><head><link type="text/rcss" href="base.rcss"/><link type="text/rcss" href="dialog.rcss"/>
+<!-- 스크립트 선택창(0x37894): 여관·저장 지점·꽃·헌화·도움말 선택·카지노 메뉴 등. 원본은 대사창 자리의 띠에 제목과 손 커서 목록.
+     대사창과 같은 자리(아래 가운데)에 제목 띠가 붙은 목록 판으로 띄운다. 목록은 vlist 부품(원본 손 커서 ▶는 선택 띠가 대신한다). 키는 위/아래와 OK뿐이다(취소 없음, 끝에서 멈춤). -->
+<style>
+#panel { width: 300dp; padding: 6dp 8dp 4dp 8dp; }
+body.narrow #panel { width: 100%; }
+#stage { padding: 0 4dp; }
+.title { color: #fff; }
+#keys { margin-top: 3dp; text-align: right; }
+.arrow { color: #ffd75e; }
+.arrow.off { color: #4a5296; }
+</style></head>
+<body data-model="dialog_choice" data-class-narrow="d.narrow">
+<div id="stage" class="stage-bottom">
+  <div id="panel" class="talk pop">
+    <div class="title" data-if="d.has_title"><span data-style-color="d.tcolor">{{d.title}}</span></div>
+    <vlist for="it : d.items" nav="choice" idx="it_index" sel="it_index == d.cursor" label="it.t"/>
+    <div id="keys" class="keys"><span class="nav"><span class="arrow" data-class-off="d.first">▲</span><span class="arrow" data-class-off="d.last">▼</span> 고르기</span><span class="kb" key="ok"><span class="key">{{'ok'|key}}</span>결정</span></div>
+  </div>
+</div>
+</body></rml>

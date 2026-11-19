@@ -1,0 +1,139 @@
+<rml><head><link type="text/rcss" href="base.rcss"/><link type="text/rcss" href="fmcore.rcss"/><link type="text/rcss" href="fmshell.rcss"/>
+<title>장비 강화</title>
+<!-- 장비 강화(restored/enhance.c). 장비 화면의 * 키(새 UI는 버튼 띠의 「강화」)로만 연다. 원작에 없는 화면이라 F2(원작 그리기)에서도 뜬다.
+     왼쪽: 파티원, 가운데: 장비칸 5개(이름·+N·지금 보너스), 오른쪽: 고른 칸의 강화 미리보기(올랐을 때 능력치, 성공률, 비용, +1~+10 단계 표)와 강화 버튼.
+     다른 게임(강화 확률을 먼저 보이고, 다음 단계 수치를 미리 보이는 모바일 RPG)과 같은 방식이다. 파티원·칸은 눌러서(pick="enh"), 강화·닫기는 키 버튼으로 누른다.
+     결과는 가운데 띠로 보이고(성공 금색 / 실패 회색 흔들림) 토스트로도 알린다.
+     필드 메뉴 틀 안(body.shell, restored/fm_shell.c)에서는 레일 오른쪽 내용 자리에 놓인다: 파티원은 틀의 캐릭터 띠(칩·[ ]·LT/RT)가,
+     강화·닫기는 고정 버튼 띠(「강화」「이전」)가 맡으므로 파티원 단·강화 단추·키 안내 띠는 감춘다. 원작 그리기(F2)에서는 지금처럼 전체 화면. -->
+<style>
+#mem { flex: 0 0 118dp; width: 118dp; display: flex; flex-direction: column; }
+#mid { flex: 1 1 0; min-width: 0; margin-left: 6dp; display: flex; flex-direction: column; }
+#det { flex: 0 0 192dp; width: 192dp; margin-left: 6dp; display: flex; flex-direction: column; }
+.mrow { display: flex; flex-direction: row; align-items: center; height: 44dp; padding: 0 4dp; box-sizing: border-box; margin-bottom: 2dp;
+        border: 1dp #00000000; border-radius: 3dp; background-color: #10143270; }
+.mrow.sel { decorator: horizontal-gradient(#3f78f0c0 #2a4ab8c0); border-color: #a8c4ff; }
+.mrow .face { flex: 0 0 40dp; width: 40dp; height: 40dp; margin-right: 5dp; }
+.mrow .who { flex: 1 1 0; min-width: 0; }
+.mrow .nm { white-space: nowrap; overflow: hidden; color: #fff; }
+.mrow .sum { color: #ffd75e; font-size: 10dp; }
+.badge { flex: 0 0 auto; margin-left: 6dp; padding: 0 4dp; height: 14dp; line-height: 14dp; border-radius: 2dp; background-color: #1e2250; color: #9aa2d8; font-size: 10dp; }
+.badge.on { background-color: #8a5a10; color: #ffe9a0; border: 1dp #f2c84a; }
+.badge.max { background-color: #a8741a; color: #fff; border: 1dp #ffe37a; }
+#det .head { text-align: center; }
+#det .iname { color: #fff; white-space: nowrap; overflow: hidden; }
+#det .arrow { font-size: 16dp; line-height: 20dp; margin: 2dp 0; text-align: center; }
+#det .arrow .to { color: #9aa2d8; margin: 0 4dp; }
+#det .arrow .nx { color: #ffd75e; }
+#det .none { color: #8c94c4; text-align: center; padding: 10dp 4dp; }
+.st { display: flex; flex-direction: row; align-items: center; height: 15dp; }
+.st .l { flex: 0 0 46dp; color: #9aa2d8; }
+.st .v { flex: 0 0 auto; color: #fff; }
+.st .a { flex: 0 0 auto; margin: 0 4dp; color: #9aa2d8; font-size: 10dp; }
+.st .nv { flex: 0 0 auto; color: #abfcff; }
+.st .nv.same { color: #fff; }
+.st .bb { flex: 1 1 0; text-align: right; font-size: 10dp; color: #8c94c4; white-space: nowrap; }
+.ladder { display: flex; flex-direction: row; margin-top: 4dp; }
+.pip { flex: 1 1 0; height: 15dp; line-height: 15dp; margin-right: 1dp; text-align: center; font-size: 10dp; color: #7c84b0; background-color: #1e2250; border-radius: 2dp; border: 1dp #00000000; }
+.pip.done { background-color: #8a5a10; color: #ffe9a0; }
+.pip.next { border-color: #a8c4ff; color: #fff; background-color: #2a4ab8; }
+.rate { display: flex; flex-direction: row; align-items: center; height: 16dp; margin-top: 4dp; }
+.rate .l { flex: 0 0 50dp; color: #9aa2d8; }
+.rate .gauge { flex: 1 1 0; }
+.rate .pc { flex: 0 0 40dp; text-align: right; color: #fff; }
+.cost { display: flex; flex-direction: row; align-items: center; height: 16dp; }
+.cost .l { flex: 0 0 50dp; color: #9aa2d8; }
+.cost .v { flex: 1 1 0; text-align: right; }
+.go { margin-top: 6dp; text-align: center; height: 24dp; line-height: 24dp; border-radius: 3dp; color: #fff; border: 1dp #f2c84a; decorator: horizontal-gradient(#b4781a #7a4a0c); }
+.go.dis { color: #8c94c4; border-color: #4a5296; decorator: none; background-color: #1e2250; }
+.go.press { decorator: horizontal-gradient(#e0a030 #a8741a); }
+body.touch .go { height: 30dp; line-height: 30dp; }
+
+/* 결과 띠: 가운데에 잠깐. res 1 성공, 2 실패(3, 4는 같은 결과가 이어질 때 연출을 다시 돌리려고 flip) */
+#resw { position: absolute; left: 0; top: 0; width: 100%; height: 100%; display: flex; justify-content: center; align-items: center; }
+.resb { padding: 10dp 30dp; text-align: center; border-radius: 4dp; font-size: 16dp; line-height: 22dp; white-space: nowrap; }
+.resb .s { font-size: 10dp; line-height: 14dp; margin-top: 2dp; }
+.resb.ok { background-color: #6a4408f0; border: 2dp #ffe37a; color: #fff0b0; font-effect: outline(1dp #3a2000); }
+.resb.ng { background-color: #2a2e48f0; border: 2dp #8c94c4; color: #c8cdf6; font-effect: outline(1dp #0a0e28); }
+@keyframes res-a { 0% { opacity: 0; transform: scale(0.6); } 25% { opacity: 1; transform: scale(1.12); } 40% { transform: scale(1); } 80% { opacity: 1; } 100% { opacity: 0; } }
+@keyframes res-b { 0% { opacity: 0; transform: scale(0.6); } 25% { opacity: 1; transform: scale(1.12); } 40% { transform: scale(1); } 80% { opacity: 1; } 100% { opacity: 0; } }
+@keyframes shk-a { 0% { opacity: 0; transform: translateX(0dp); } 15% { opacity: 1; transform: translateX(-8dp); } 30% { transform: translateX(8dp); } 45% { transform: translateX(-5dp); } 60% { transform: translateX(0dp); } 80% { opacity: 1; } 100% { opacity: 0; } }
+@keyframes shk-b { 0% { opacity: 0; transform: translateX(0dp); } 15% { opacity: 1; transform: translateX(-8dp); } 30% { transform: translateX(8dp); } 45% { transform: translateX(-5dp); } 60% { transform: translateX(0dp); } 80% { opacity: 1; } 100% { opacity: 0; } }
+.resb.ok { animation: 0.9s linear-in-out res-a; }
+.resb.ok.flip { animation: 0.9s linear-in-out res-b; }
+.resb.ng { animation: 0.9s linear-in-out shk-a; }
+.resb.ng.flip { animation: 0.9s linear-in-out shk-b; }
+
+/* 좁은 화면: 파티원은 가로 탭, 장비칸 아래에 미리보기를 쌓는다. 제목·단계 표·보너스 설명은 접어 320dp 높이에 맞춘다 */
+body.narrow .screen { padding: 4dp 4dp; }
+body.narrow #mem { flex: 0 0 auto; width: 100%; flex-direction: row; padding: 0; border: none; background-color: transparent; }
+body.narrow .cols { flex-direction: column; }
+body.narrow #mem .title, body.narrow #mid .title, body.narrow #det .title { display: none; }
+body.narrow #mid { margin-left: 0; margin-top: 3dp; flex: 0 0 auto; padding: 3dp 4dp; }
+body.narrow #det { flex: 1 1 0; width: 100%; margin-left: 0; margin-top: 3dp; min-height: 0; padding: 3dp 6dp; }
+body.narrow .mrow { flex: 1 1 0; height: 22dp; margin: 0 3dp 0 0; }
+body.narrow .mrow .face, body.narrow .mrow .sum { display: none; }
+body.narrow #slots .vrow { height: 18dp; margin-bottom: 1dp; } /* 좁으면 한 줄: 이름과 단계만 */
+body.narrow #slots .vsub, body.narrow #slots .vic { display: none; }
+body.narrow .ladder, body.narrow .st .bb, body.narrow #det .iname { display: none; }
+body.narrow #det .arrow { font-size: 12dp; line-height: 14dp; margin: 0; }
+body.narrow .st { height: 14dp; }
+body.narrow .rate, body.narrow .cost { height: 14dp; margin-top: 2dp; }
+body.narrow .go { margin-top: 3dp; height: 22dp; line-height: 22dp; }
+body.narrow .keybar { margin-top: 3dp; padding: 2dp 4dp; }
+.enhbg { background-color: #070a1cf6; }
+body.shell #mem, body.shell .keybar, body.shell .go { display: none; }
+body.shell #mid { margin-left: 0; }
+body.shell #det { flex: 0 0 190dp; width: 190dp; }
+body.shell.narrow #det { width: 100%; }
+#slots .vrow.hover { border-color: #ffffce; }
+</style></head>
+<body data-model="enhance" data-class-narrow="d.narrow" data-class-shell="d.shell" data-class-chars="d.chars">
+<div class="screen col-flex" data-class-enhbg="!d.shell">
+  <div class="cols">
+    <div id="mem" class="panel pop">
+      <div class="title">파티원</div>
+      <div data-for="m : d.members" class="mrow" pick="enh" data-attr-idx="m.i" data-class-sel="m.sel">
+        <div class="face"><img data-if="m.face != ''" data-attr-src="m.face"/></div>
+        <div class="who"><div class="nm">{{m.name}}</div><div class="sum">LV{{m.lv}}</div><div class="sum" data-if="m.sum > 0">합계 +{{m.sum}}</div></div>
+      </div>
+    </div>
+    <div id="mid" class="panel pop">
+      <div class="title">장비칸 강화<span class="sub">강화석 ×{{d.have}}</span></div>
+      <vlist id="slots" size="l" for="s : d.slots" pick="enh" idx="s.i" sel="s.sel" dis="s.empty" icon="s.icon"
+             label="s.empty ? '비어 있음' : s.name" sub="s.bonus == '' ? s.kind : s.kind + ' · ' + s.bonus">
+        <span class="badge" data-if="!s.empty" data-class-on="s.step > 0" data-class-max="s.step == 10">+{{s.step}}</span>
+      </vlist>
+    </div>
+    <div id="det" class="panel pop">
+      <div class="title">강화 미리보기</div>
+      <div data-if="!d.has_item" class="none">장비를 끼운 칸을 고르세요</div>
+      <div data-if="d.has_item">
+        <div class="head iname">{{d.iname}}</div>
+        <div class="arrow" data-if="!d.maxed"><span class="num">+{{d.step}}</span><span class="to"> ▶ </span><span class="nx">+{{d.target}}</span></div>
+        <div class="arrow" data-if="d.maxed"><span class="gold">+{{d.step}} 최대</span></div>
+        <div data-if="!d.can" class="none">능력치가 없는 장비는 강화할 수 없습니다</div>
+        <div data-if="d.can">
+          <div data-for="s : d.stats" class="st">
+            <span class="l">{{s.name}}</span><span class="v">{{s.v}}</span>
+            <span data-if="!d.maxed"><span class="a">▶</span><span class="nv" data-class-same="!s.up">{{s.nv}}</span></span>
+            <span class="bb">강화 +{{s.b}}<span data-if="!d.maxed"> ▶ +{{s.nb}}</span></span>
+          </div>
+          <div class="ladder"><div data-for="p : d.ladder" class="pip" data-class-done="p.done" data-class-next="p.next">{{p.n}}</div></div>
+          <div class="rate" data-if="!d.maxed"><span class="l">성공률</span><div class="gauge time"><div class="fill" data-style-width="d.rate + '%'"></div></div><span class="pc">{{d.rate}}%</span></div>
+          <div class="cost" data-if="!d.maxed"><span class="l">강화석</span><span class="v"><span data-class-bad="!d.enough" data-class-good="d.enough">{{d.cost}}개 필요</span><span class="dimtx"> / 보유 {{d.have}}</span></span></div>
+          <div class="go" key="ok" data-class-dis="!d.go"><span data-if="!d.maxed">강화 +{{d.target}}</span><span data-if="d.maxed">최대 단계</span></div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="panel flat keybar keys" style="background-color: #101432;"><span class="pair kb" data-for="k : d.keys" data-class-nav="k.nav" data-attr-key="k.key"><span class="key">{{k.k | key}}</span>{{k.t}}</span></div>
+  <div id="resw" data-if="d.res != 0">
+    <div class="resb" data-class-ok="d.res == 1 || d.res == 3" data-class-ng="d.res == 2 || d.res == 4" data-class-flip="d.res > 2">
+      <div data-if="d.res == 1 || d.res == 3">강화 성공!<div class="s">+{{d.res_step}}</div></div>
+      <div data-if="d.res == 2 || d.res == 4">강화 실패...<div class="s">+{{d.res_step}} 그대로 · 장비는 안전합니다</div></div>
+    </div>
+  </div>
+</div>
+<div data-if="d.shell"><fmbar/></div>
+</body></rml>

@@ -1,0 +1,121 @@
+<rml><head><link type="text/rcss" href="base.rcss"/><link type="text/rcss" href="fmchar.rcss"/><link type="text/rcss" href="fmshell.rcss"/>
+<!-- 망각의 물약 창(restored/statreset.c). 왼쪽에 파티원 목록(누르면 고르기, 고른 줄을 다시 누르면 되돌리기), 오른쪽에 고른 파티원의
+     지금 → 되돌린 뒤 능력치와 돌려받을 GP 미리보기. 되돌리기를 누르면 예/아니오로 한 번 더 묻는다(물약이 한 번에 한 사람 몫이라).
+     키: ↑↓/←→ 고르기, OK 되돌리기, 취소 닫기. 원작에 없는 화면이라 F2(원작 그리기)에서도 뜬다.
+     필드 메뉴 틀 안(body.shell)에서는 내용 자리를 채우고(.fmarea), 파티원을 누르면 바로 그 사람의 확인 창이 뜬다(확인은 그대로).
+     되돌리기·닫기는 고정 버튼 띠(「사용」/「확인」, 「이전」). 확인 창의 막도 내용 자리만 덮어 「이전」이 늘 눌린다.
+     성장의 물약(d.lvmode)도 이 창을 쓴다: 목록 값은 다음 레벨, 미리보기는 LV·능력치 증가와 GP +1. -->
+<style>
+.wrapw { position: absolute; left: 0; top: 0; width: 100%; height: 100%; display: flex; justify-content: center; align-items: center; background-color: #070a1cb0; }
+#win { width: 500dp; }
+#cols { display: flex; flex-direction: row; }
+#left { flex: 0 0 auto; width: 150dp; }
+#right { flex: 1 1 0; min-width: 0; margin-left: 8dp; }
+#mlist .lvl { flex: 0 0 auto; margin-left: 4dp; }
+.detail { display: flex; flex-direction: row; }
+.dface { flex: 0 0 auto; }
+.dinfo { flex: 1 1 0; min-width: 0; margin-left: 8dp; }
+.dname { font-size: 16dp; line-height: 20dp; color: #fff; }
+.srow { display: flex; flex-direction: row; align-items: center; height: 20dp; margin-top: 3dp; white-space: nowrap; }
+.srow .sn { flex: 0 0 auto; width: 34dp; color: #9aa2d8; }
+.srow .sv { flex: 0 0 auto; width: 30dp; text-align: right; color: #fff; }
+.srow .ar { flex: 0 0 auto; width: 20dp; text-align: center; color: #9aa2d8; }
+.srow .sa { flex: 0 0 auto; width: 30dp; text-align: right; color: #fff; }
+.srow .sa.chg { color: #7df08c; }
+.srow .sp { flex: 1 1 0; text-align: right; color: #cfd3ff; font-size: 10dp; }
+.gpbox { margin-top: 8dp; padding: 4dp 6dp; border: 1dp #4a5296; border-radius: 3dp; background-color: #10143280; text-align: center; }
+.gpbox .big { font-size: 16dp; line-height: 20dp; color: #7df08c; }
+.gpbox.zero .big { color: #7c84b0; }
+.dname .lvup { color: #7df08c; font-size: 16dp; }
+.acts { display: flex; flex-direction: row; justify-content: flex-end; margin-top: 8dp; }
+.act { padding: 0 12dp; margin-left: 6dp; height: 22dp; line-height: 22dp; text-align: center; background-color: #2a3470; border: 1dp #8c96e8; border-radius: 3dp; color: #fff; }
+.act.go { decorator: horizontal-gradient(#3f78f0 #2a4ab8); border-color: #a8c4ff; }
+.act.dis { decorator: none; background-color: #1a1f48; border-color: #4a5296; color: #7c84b0; }
+body.touch .act { height: 28dp; line-height: 28dp; }
+body.touch .keys { display: none; } /* 터치는 이 문서의 버튼(되돌리기·닫기, 예·아니오)이 같은 일을 한다 */
+/* 확인 */
+.askw { position: absolute; left: 0; top: 0; width: 100%; height: 100%; display: flex; justify-content: center; align-items: center; background-color: #070a1c90; }
+.askw .panel { width: 300dp; padding: 8dp 12dp 10dp 12dp; }
+#ask .q { text-align: center; margin: 6dp 0 4dp 0; font-size: 16dp; line-height: 20dp; color: #fff; }
+#ask .sub { text-align: center; color: #cfd3ff; font-size: 10dp; line-height: 12dp; margin-bottom: 8dp; }
+.btns { display: flex; flex-direction: row; justify-content: center; }
+.btn { width: 96dp; margin: 0 5dp; text-align: center; height: 24dp; line-height: 24dp; }
+body.touch .btn { height: 30dp; line-height: 30dp; }
+.lockd { opacity: 0.55; }
+/* 좁은 화면: 목록 위, 미리보기 아래 */
+body.narrow #win { width: 224dp; }
+body.narrow #cols { display: block; }
+body.narrow #left { width: auto; }
+body.narrow #right { margin-left: 0; margin-top: 4dp; }
+body.narrow .dface { display: none; }
+body.narrow .dinfo { margin-left: 0; }
+body.narrow h2 { display: none; }
+body.narrow .dname { font-size: 12dp; line-height: 14dp; }
+body.narrow .srow { height: 14dp; margin-top: 1dp; }
+body.narrow .gpbox { display: none; }
+body.narrow .acts { margin-top: 4dp; }
+body.narrow .act { height: 20dp; line-height: 20dp; }
+body.narrow.touch .act { height: 26dp; line-height: 26dp; }
+.gpline { display: none; margin-top: 4dp; text-align: center; color: #cfd3ff; }
+.gpline .big { color: #7df08c; }
+.gpline.zero .big { color: #7c84b0; }
+body.narrow .gpline { display: block; }
+body.narrow .askw .panel { width: 216dp; }
+body.shell .wrapw { background-color: transparent; align-items: stretch; justify-content: stretch; display: flex; flex-direction: column; }
+body.shell #win { width: auto; flex: 1 1 0; }
+body.shell .acts, body.shell .keys { display: none; }
+body.shell .askw { background-color: #070a1cb0; }
+.mrow.hover, .vrow.hover, .btn.hover { border-color: #ffffce; }
+</style></head>
+<body data-model="statreset" data-class-narrow="d.narrow" data-class-shell="d.shell" data-class-chars="d.chars">
+<div id="wrap" class="wrapw fmarea"><div id="win" class="panel gold pop">
+  <div class="title">{{d.lvmode ? '성장의 물약' : '망각의 물약'}}<span class="sub">보유 {{d.have}}개</span></div>
+  <div id="cols">
+    <div id="left">
+      <h2>파티원 고르기</h2>
+      <vlist id="mlist" for="m : d.members" pick="sr" idx="m.idx" sel="m.cur" dis="m.can == 0" label="m.name"
+             value="m.can == 0 ? (d.lvmode ? 'MAX' : '-') : (d.lvmode ? '→ LV' + m.lv_after : '+' + m.refund + ' GP')" value-class="good"><span class="label lvl">LV{{m.lv}}</span></vlist>
+    </div>
+    <div id="right">
+      <div class="detail">
+        <div class="dface"><div class="facebox" data-style-width="d.cur.face_w + 'dp'" data-style-height="d.cur.face_h + 'dp'"><img data-if="d.cur.face != ''" data-attr-src="d.cur.face"/></div></div>
+        <div class="dinfo">
+          <div class="dname">{{d.cur.name}} <span class="label">LV{{d.cur.lv}}</span><span class="label" data-if="d.lvmode &amp;&amp; d.cur.can"> → </span><span class="big lvup" data-if="d.lvmode &amp;&amp; d.cur.can">LV{{d.cur.lv_after}}</span></div>
+          <div class="srow" data-for="s : d.cur.stats">
+            <span class="sn">{{s.n}}</span><span class="sv">{{s.now}}</span><span class="ar">→</span><span class="sa" data-class-chg="s.after != s.now">{{s.after}}</span><span class="sp">{{s.sp > 0 ? '분배 ' + s.sp + '점' : ''}}</span>
+          </div>
+        </div>
+      </div>
+      <div class="gpbox" data-if="!d.lvmode" data-class-zero="d.cur.refund == 0">
+        <div class="label">돌려받을 GP</div>
+        <div class="big">{{d.cur.refund > 0 ? '+' + d.cur.refund : '없음'}}</div>
+        <div class="label" data-if="d.cur.refund > 0">GP {{d.cur.gp}} → {{d.cur.gp_after}}</div>
+      </div>
+      <div class="gpline" data-if="!d.lvmode" data-class-zero="d.cur.refund == 0">돌려받을 GP <span class="big">{{d.cur.refund > 0 ? '+' + d.cur.refund : '없음'}}</span><span data-if="d.cur.refund > 0"> (GP {{d.cur.gp}} → {{d.cur.gp_after}})</span></div>
+      <div class="gpbox" data-if="d.lvmode" data-class-zero="!d.cur.can">
+        <div class="label">레벨</div>
+        <div class="big">{{d.cur.can ? 'LV' + d.cur.lv + ' → LV' + d.cur.lv_after : '최고 레벨'}}</div>
+        <div class="label" data-if="d.cur.can">GP {{d.cur.gp}} → {{d.cur.gp_after}}</div>
+      </div>
+      <div class="gpline" data-if="d.lvmode" data-class-zero="!d.cur.can"><span class="big">{{d.cur.can ? 'LV' + d.cur.lv + ' → LV' + d.cur.lv_after : '최고 레벨'}}</span><span data-if="d.cur.can"> (GP {{d.cur.gp}} → {{d.cur.gp_after}})</span></div>
+      <div class="acts">
+        <div class="act go" data-class-dis="!d.can" pick="sr" idx="12">{{d.lvmode ? '올리기' : '되돌리기'}}</div>
+        <div class="act" pick="sr" idx="13">닫기</div>
+      </div>
+    </div>
+  </div>
+  <div class="keys mid gap-v"><span class="nav kb"><span class="key">↑↓</span>선택</span><span class="kb" key="ok"><span class="key">{{'ok' | key}}</span>{{d.lvmode ? '올리기' : '되돌리기'}}</span><span class="kb" key="clear"><span class="key">{{'clear' | key}}</span>닫기</span></div>
+</div></div>
+<div id="ask" class="askw fmarea" data-if="d.stage == 1"><div class="panel gold pop">
+  <div class="title">{{d.lvmode ? '레벨 올리기' : 'GP 분배 되돌리기'}}</div>
+  <div class="q">{{d.lvmode ? d.cur.name + '의 레벨을 올립니다' : d.cur.name + '의 GP 분배를 되돌립니다'}}</div>
+  <div class="sub" data-if="!d.lvmode">망각의 물약 1개를 사용하고 GP {{d.cur.refund}}점을 돌려받습니다.<br/>능력치는 레벨 기본값으로 돌아갑니다.</div>
+  <div class="sub" data-if="d.lvmode">성장의 물약 1개를 사용합니다.<br/>LV{{d.cur.lv}} → LV{{d.cur.lv_after}}, GP +1</div>
+  <div class="btns" data-class-lockd="d.lock">
+    <div class="btn menu-item" pick="sr" idx="10" data-class-sel="d.sel == 0">예</div>
+    <div class="btn menu-item" pick="sr" idx="11" data-class-sel="d.sel == 1">아니오</div>
+  </div>
+  <div class="keys mid gap-v"><span class="nav kb"><span class="key">←→</span>선택</span><span class="kb" key="ok"><span class="key">{{'ok' | key}}</span>확인</span><span class="kb" key="clear"><span class="key">{{'clear' | key}}</span>취소</span></div>
+</div></div>
+<div data-if="d.shell"><fmbar/></div>
+</body></rml>

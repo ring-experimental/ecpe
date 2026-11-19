@@ -1,0 +1,129 @@
+/* 타이틀 영역(title_*.rml) 공용. 바탕(남색 띠, 금테, 로고)은 원본 그림이 그대로 있고 그 위에 놓인다.
+   금테 안쪽(양옆 16dp)과 로고 아래(top은 게임이 넘긴다)만 쓴다. */
+
+/* ---- 메인 메뉴: 왼쪽 레일 + 오른쪽 패널. 틀은 단계와 상관없이 같은 자리·같은 크기다(ui_title.c '배치'). ---- */
+.tarea { position: absolute; left: 16dp; right: 16dp; bottom: 30dp; display: flex; flex-direction: row; justify-content: center; align-items: stretch; }
+.rail { flex: 0 0 auto; margin-right: 6dp; padding: 6dp 5dp; }
+.rail .menu-item { text-align: center; }
+.menu-item.on { color: #ffd75e; background-color: #2a3470; border-color: #8a7440; }
+.menu-item.dis { color: #7c84b0; }
+.menu-item.sel.dis { color: #c8cdf6; }
+/* 고르는 곳이 아닌 목록은 한 단계 가라앉힌다(어디를 고르는지 한눈에) */
+.idle .menu-item { color: #9aa2d8; background-color: #10143240; }
+.idle .menu-item.on { color: #ffd75e; background-color: #2a3470; }
+/* 하위 목록·곡 목록(<vlist>)이 고르는 곳이 아니면 줄 글을 가라앉힌다(고른 줄은 idle 띠로 남는다) */
+.sub.idle .vrow, .olist.idle .vrow { color: #9aa2d8; }
+.sub.idle .vrow.idle, .olist.idle .vrow.idle { color: #fff; }
+.rail.idle { border-color: #4a5296; background-color: #10143cd8; }
+.preview { opacity: 0.6; }
+
+/* 메인 메뉴: 틀이 로고를 덮고 늘 같은 크기다(ui_title.c menu_begin의 cover). 바탕을 반투명으로 낮춰 로고가 흐리게 비치게 한다. */
+.tarea.cover .panel { background-color: #161a3ec8; }
+.tarea.cover .rail.idle { background-color: #10143c9c; }
+.tarea.cover .desc, .tarea.cover .oinfo, .tarea.cover .tbody { background-color: #0a0e2860; }
+
+.tpanel { flex: 0 0 auto; display: flex; flex-direction: column; }
+.ptitle { display: flex; flex-direction: row; flex: 0 0 auto; }
+.pname { flex: 1 1 0; min-width: 0; overflow: hidden; white-space: nowrap; }
+.crumb { color: #fff; }
+.crumb.link { color: #cfd3ff; }
+.csep { margin: 0 5dp; color: #8c96e8; }
+.psub { flex: 0 0 auto; margin-left: 6dp; white-space: nowrap; color: #cfd3ff; }
+.setbtn { white-space: nowrap; flex: 0 0 auto; margin: -2dp 0 -2dp 6dp; padding: 0 8dp; height: 18dp; line-height: 18dp; color: #fff; background-color: #2a3470; border: 1dp #8c96e8; border-radius: 3dp; }
+.pbody { flex: 1 1 0; min-height: 0; display: flex; flex-direction: row; }
+.sub { flex: 0 0 auto; margin-right: 6dp; }
+.detail { flex: 1 1 0; min-width: 0; display: flex; flex-direction: column; }
+.detail > div { flex: 1 1 0; min-height: 0; }
+
+.ln { height: 14dp; line-height: 14dp; white-space: pre; }
+.arr { color: #ffd75e; }
+.arr.off { color: #3a4280; }
+
+/* 설명 칸 */
+.desc { padding: 8dp 10dp; background-color: #0a0e2880; border-radius: 2dp; }
+.dname { color: #ffd75e; margin-bottom: 6dp; }
+.dtext { line-height: 18dp; color: #e4e7ff; }
+.qbtns { display: flex; flex-direction: row; margin-top: 10dp; }
+.qbtn { display: flex; flex-direction: row; align-items: center; padding: 0 10dp; height: 22dp; margin-right: 6dp; background-color: #2a3470; border: 1dp #8c96e8; border-radius: 3dp; }
+.qbtn.yes { border-color: #f2c84a; }
+.qbtn .key { margin: 0 5dp 0 0; }
+.qbtn > span { display: inline-block; }
+
+/* 에픽 OST */
+.ost { display: flex; flex-direction: row; }
+.olist { flex: 0 0 auto; width: 96dp; margin-right: 6dp; }
+.oinfo { flex: 1 1 0; min-width: 0; padding: 8dp 8dp; background-color: #0a0e2880; border-radius: 2dp; }
+
+/* 글 쪽 */
+.tbody { display: flex; flex-direction: row; padding: 4dp 6dp; background-color: #0a0e2880; border-radius: 2dp; }
+.scrl { flex: 0 0 auto; display: flex; flex-direction: column; width: 10dp; margin-left: 4dp; text-align: center; }
+.foot { display: flex; flex-direction: row; justify-content: center; margin-top: 8dp; }
+
+/* 도움말(ui/help.rcss의 색인 폭을 이 패널에 맞춘다) */
+.hbody { display: flex; flex-direction: row; }
+.hbody .hidx { width: 96dp; margin-right: 6dp; overflow-y: auto; }
+.hbody .hidx scrollbarvertical { width: 0; }
+.hbody .hpage { flex: 1 1 0; min-width: 0; }
+
+/* 환경설정 */
+/* 줄은 <vlist size="l">, 이름 칸은 고정 폭(칩이 나머지를 쓴다) */
+.opt { display: flex; flex-direction: column; }
+/* 줄이 8개(원작 3 + 원작에 없는 5)라 두 줄 카드 높이(30dp)로는 패널을 넘는다. 줄을 낮추고, 그래도 넘치면 목록만 넘긴다 */
+.orows { flex: 0 1 auto; min-height: 0; overflow-y: auto; }
+.orows.v-l .vrow { height: 24dp; }
+body.touch .orows.v-l .vrow { height: 28dp; }
+.orows .vtx { flex: 0 0 84dp; width: 84dp; }
+.orows .chips { flex: 1 1 0; display: flex; flex-direction: row; align-items: center; }
+.chip { height: 14dp; line-height: 14dp; padding: 1dp 8dp 0dp 8dp; margin-left: 4dp; border: 1dp #4a5296; border-radius: 3dp; color: #8c94c4; background-color: #0a0e28a0; }
+.chip.on { color: #fff; decorator: horizontal-gradient(#6a3ad6 #3a34a8); border-color: #c9c0ff; }
+.orows .vrow.sel .chip.on { color: #2a1a00; decorator: horizontal-gradient(#ffe37a #f2c84a); border-color: #fff4c0; }
+.orows .arr { width: 10dp; }
+.onote { flex: 0 0 auto; margin-top: 4dp; color: #9aa2d8; font-size: 10dp; line-height: 12dp; }
+
+/* 게임문의: 원본 그림(검은 글)이라 흰 판 위에 둔다 */
+.contact { display: flex; flex-direction: column; justify-content: center; }
+.card { display: flex; flex-direction: column; align-items: center; padding: 6dp; background-color: #ffffff; border-radius: 3dp 3dp 0 0; }
+.cinfo { display: flex; flex-direction: column; align-items: center; padding: 6dp 0 2dp 0; background-color: #2a3470; }
+.cinfo img { margin: 2dp 0; }
+.mailbar { display: flex; justify-content: center; padding: 3dp 0; background-color: #0178a1; border-top: 2dp #025d94; border-radius: 0 0 3dp 3dp; }
+
+/* 고정 키 안내: 오른쪽 아래, 늘 「결정」「이전」 두 칸 */
+.tkeys { position: absolute; right: 44dp; bottom: 10dp; display: flex; flex-direction: row; justify-content: flex-end; }
+.tkeys .kb { margin-left: 10dp; }
+.tkeys .kb.off { color: #7c84b0; }
+.tkeys .kb.off .key { color: #7c84b0; border-color: #4a5296; background-color: #161a3e; }
+
+/* 좁은 화면(폭 < 400) */
+.tarea.narrow .orows .vtx { flex: 0 0 80dp; width: 80dp; }
+.tarea.narrow .chip { padding: 1dp 4dp 0dp 4dp; margin-left: 3dp; }
+.tarea.narrow .rail { margin-right: 0; }
+.tarea.narrow .olist { width: 80dp; }
+/* 좁으면 머리 띠에 지금 이름만(앞 단계는 「이전」으로) */
+.tarea.narrow .crumb.link, .tarea.narrow .csep { display: none; }
+
+/* ---- 터치(host/ui.h "터치"): 누를 곳을 손가락 크기로 ---- */
+body.touch .menu-item { height: 22dp; line-height: 22dp; }
+/* 아래 버튼(높이 22dp)이 패널을 가리지 않게 */
+body.touch .tarea { bottom: 36dp; }
+body.touch .tkeys { bottom: 7dp; }
+/* 터치에서는 항목을 바로 누르므로 「결정」은 뺀다(「이전」 자리는 그대로) */
+body.touch .tkeys .okk { display: none; }
+body.touch .tkeys .kb.off { background-color: #161a3e; border-color: #3a4280; }
+body.touch .setbtn { height: 20dp; line-height: 20dp; margin: -3dp -2dp -3dp 6dp; }
+body.touch .orows .arr { width: 28dp; height: 28dp; line-height: 28dp; text-align: center; font-size: 14dp; }
+body.touch .qbtn { height: 28dp; padding: 0 14dp; }
+body.touch .qbtn .key { display: none; }
+/* 쪽 번호 옆 ◀▶와 스크롤 ▲▼는 작다 */
+body.touch .psub .arr { padding: 6dp 8dp; margin: -6dp 0; }
+body.touch .scrl { width: 24dp; }
+body.touch .scrl .arr { padding: 6dp 0; }
+
+/* 방향 키 안내(「결정」「이전」 왼쪽). 터치에서는 뜻이 없어 감춘다 */
+.thint { margin-right: 6dp; color: #aab4ff; font-size: 10dp; line-height: 14dp; white-space: nowrap; }
+body.touch .thint, .tkeys.narrow .thint { display: none; }
+/* 환경설정의 여는 줄(조작 설정 등): 「열기」 단추. 고른 줄이면 금색 + 결정 키 */
+.chip.obtn { color: #fff; background-color: #2a3470; border-color: #8c96e8; }
+.orows .vrow.sel .chip.obtn { color: #2a1a00; decorator: horizontal-gradient(#ffe37a #f2c84a); border-color: #fff4c0; }
+.okey { margin-left: 5dp; padding-left: 5dp; border-left: 1dp #7a5a10; font-size: 10dp; }
+body.touch .okey { display: none; }
+.opt.preview .chip.obtn { color: #8c94c4; background-color: #0a0e28a0; border-color: #4a5296; }

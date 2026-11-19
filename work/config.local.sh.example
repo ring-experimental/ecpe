@@ -1,0 +1,4 @@
+# work/config.local.sh로 복사해 이 기계에 맞게 고친다(.gitignore). work/config.sh가 읽는다.
+# export ECPE_PY=/path/to/venv/bin/python        # uv 대신 쓸 파이썬
+# export WIE=/path/to/wie/target/release/wie      # 대조용 WIE
+# export ECPE_USER_SAVE="/path/to/ecpe/save"      # 시험에 사본으로 쓸 세이브 폴더

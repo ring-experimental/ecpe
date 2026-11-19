@@ -1,0 +1,12 @@
+<rml><head><link type="text/rcss" href="base.rcss"/>
+<!-- 전투 메시지("도망", "도망 성공/실패", "MP 부족", "MG 부족", 레벨업 알림 등). 원작처럼 화면 위 가운데. -->
+<style>
+body div.off { display: none; }
+#m { position: absolute; top: 30dp; left: 0; right: 0; text-align: center; }
+#m.narrow { top: 48dp; }
+#box { display: inline-block; min-width: 96dp; max-width: 80%; padding: 5dp 14dp; text-align: center; }
+.ln { white-space: nowrap; }
+</style></head>
+<body data-model="battle_msg">
+<div id="m" data-class-narrow="d.narrow"><div id="box" class="panel gold pop"><div class="ln" data-for="l : d.lines" data-class-off="!l.v">{{l.t}}</div></div></div>
+</body></rml>

@@ -1,0 +1,16 @@
+<rml><head><link type="text/rcss" href="base.rcss"/>
+<!-- 만든사람들(스태프롤, 0xbfe8). 원본 글 객체가 올라가는 위치(y)를 그대로 받아 그린다. 위아래 띠에서 흐려진다(op). -->
+<style>
+.gone { display: none; }
+.r { position: absolute; left: 0; right: 0; height: 14dp; line-height: 14dp; text-align: center; white-space: pre; }
+.r.t { color: #ffd75e; font-effect: outline(1dp #3a2400); }
+body.touch #k { bottom: 6dp; }
+.kb.on { color: #ffd75e; }
+body.touch .kb.on { background-color: #3f78f0; border-color: #ffffce; }
+#k { position: absolute; left: 6dp; right: 6dp; bottom: 3dp; display: flex; flex-direction: row; justify-content: space-between; }
+</style></head>
+<body data-model="title_staff">
+<div data-for="r : d.rows" class="r" data-class-gone="!r.use" data-class-t="r.title" data-style-top="r.y + 'dp'" data-style-opacity="r.op / 100">{{r.t}}</div>
+<!-- 터치: *(나가기)와 #(빠르게)가 버튼이 된다(가장자리에 두어 글을 가리지 않는다). 빠르게는 누를 때마다 켜고 끈다(켜지면 on) -->
+<div id="k" class="keys"><span class="kb" data-for="k : d.keys" data-attr-key="k.key" data-class-on="d.fast &amp;&amp; k.key == 'hash'"><span class="key">{{k.k | key}}</span>{{k.t}}</span></div>
+</body></rml>

@@ -1,0 +1,11 @@
+<rml>
+<head><link type="text/rcss" href="ctl.rcss"/><title>editbar</title></head>
+<body class="editbar-root" data-model="ui">
+  <div class="editbar">
+    <span>끌어서 옮기고, 골라서 크기 조절</span>
+    <button data-event-click="resize(-0.1)">작게</button>
+    <button data-event-click="resize(0.1)">크게</button>
+    <button data-event-click="done">완료</button>
+  </div>
+</body>
+</rml>

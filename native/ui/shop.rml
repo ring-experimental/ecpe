@@ -1,0 +1,224 @@
+<rml><head><link type="text/rcss" href="base.rcss"/>
+<title>상점</title>
+<style>
+/* 상점(필드 메뉴 화면 8).
+   처음/분류 화면: 왼쪽 위 메뉴, 왼쪽 아래 파티, 오른쪽 판매 품목 미리보기.
+   구입 목록: 왼쪽 품목 목록(가격·보유 수), 오른쪽 고른 품목 자세히 + 파티 장착 가능 여부·장착 중인 것과의 차이.
+   아래 띠: 소지금(코인 상점·코인 구매는 코인도)과 키 안내. 개수/확인/부족 창은 목록 위 팝업.
+   좁은 화면(폭 400 미만, d.narrow)에서는 위아래로 쌓고 미리보기와 부가 줄을 줄인다. */
+#main { flex: 1 1 0; min-height: 0; }
+#left { width: 50%; min-width: 0; }
+#left.menuonly { width: 40%; }
+#right { flex: 1 1 0; min-width: 0; margin-left: 8dp; }
+.narrow #main { flex-direction: column; }
+.narrow #left, .narrow #left.menuonly { width: 100%; flex: 0 0 auto; }
+.narrow #right { margin-left: 0; margin-top: 4dp; }
+#listpanel.full { flex: 1 1 0; min-height: 0; }
+.narrow #listpanel.full { flex: 0 0 auto; }
+.narrow #listpanel .grow { flex: 0 0 auto; }
+.narrow #listpanel .vlist { flex: 0 0 auto; height: 64dp; }
+.narrow .colhead { display: none; }
+.narrow #detail .head, .narrow #detail .desc { display: none; }
+.narrow .mem .d { display: none; }
+.narrow .party { margin-top: 4dp; }
+
+/* 품목 줄의 가격·보유 열(<vlist> 안쪽 내용). 열 머리(.colhead)와 같은 폭 */
+.vrow .price { flex: 0 0 auto; width: 68dp; text-align: right; color: #ffd75e; }
+.vrow .own { flex: 0 0 auto; width: 30dp; text-align: right; color: #9aa2d8; }
+.vrow.sel .price, .vrow.sel .own { color: #fff; }
+.vrow .price.poor { color: #ff7a7a; }
+.vrow.sel .price.poor { color: #ffb0b0; }
+.colhead { display: flex; flex-direction: row; padding: 0 7dp; color: #8c94c4; }
+.colhead .name { flex: 1 1 0; }
+.colhead .price { width: 68dp; text-align: right; }
+.colhead .own { width: 30dp; text-align: right; }
+
+#preview { flex: 1 1 0; min-height: 0; overflow: hidden; }
+#preview .vrow { color: #c8cdf6; }
+#preview .vlist { overflow: hidden; }
+.narrow #preview { display: none; }
+
+#detail .head { display: flex; flex-direction: row; align-items: center; height: 26dp; }
+#detail .bigicon { flex: 0 0 auto; width: 28dp; height: 24dp; }
+#detail .desc { margin-top: 2dp; min-height: 28dp; color: #e4e8ff; }
+.narrow #detail .desc { min-height: 14dp; }
+.narrow #detail .head { height: 18dp; }
+.narrow #detail .bigicon { width: 16dp; height: 14dp; }
+.stats { display: flex; flex-direction: row; margin-top: 4dp; }
+.stat { flex: 1 1 0; display: flex; flex-direction: row; }
+.stat .num { margin-left: 6dp; }
+.kv { display: flex; flex-direction: row; margin-top: 2dp; }
+.kv .label { flex: 1 1 0; }
+.kv2 { display: flex; flex-direction: row; }
+.kv2 .label { margin-right: 6dp; }
+.kv2 .sp { flex: 1 1 0; }
+
+.party { margin-top: 6dp; }
+.members { display: flex; flex-direction: row; }
+.mem { flex: 1 1 0; min-width: 0; overflow: hidden; display: flex; flex-direction: column; align-items: center; padding: 2dp 1dp; margin-right: 3dp; border-radius: 3dp; background-color: #10143270; border: 1dp #4a5296; }
+.mem:last-child { margin-right: 0; }
+.mem .face { height: 34dp; display: flex; align-items: flex-end; justify-content: center; }
+.mem .nm { white-space: nowrap; overflow: hidden; text-align: center; width: 100%; }
+.mem.no { opacity: 0.45; }
+.mem .tag, .mem .eq, .mem .d { font-size: 10dp; line-height: 12dp; white-space: nowrap; overflow: hidden; width: 100%; text-align: center; }
+.mem .eq { color: #9aa2d8; }
+.narrow .mem .face { height: 26dp; }
+.narrow .mem .eq, .narrow .mem .tag { display: none; }
+.narrow .party h2 { display: none; }
+
+#bottom { margin-top: 6dp; display: flex; flex-direction: row; align-items: center; }
+#bottom .money { flex: 0 0 auto; }
+#bottom .keys { flex: 1 1 0; text-align: right; white-space: nowrap; }
+#bottom .money { white-space: nowrap; }
+.narrow #bottom .money { font-size: 10dp; }
+.narrow #bottom .key { margin-left: 3dp; }
+
+/* 팝업 */
+#popwrap { position: absolute; left: 0; top: 0; right: 0; bottom: 38dp; display: flex; justify-content: center; align-items: center; background-color: #070a1c90; }
+#pop { width: 240dp; }
+.narrow #pop { width: 210dp; }
+#pop .head { display: flex; flex-direction: row; align-items: center; }
+#pop .head .icon { flex: 0 0 auto; width: 16dp; }
+#pop .qrow { align-items: center; height: 20dp; margin-bottom: 2dp; }
+#pop .qrow .arrow { color: #ffd75e; width: 14dp; text-align: center; }
+#pop .qrow .n { width: 56dp; text-align: center; }
+#pop .msg { text-align: center; margin: 6dp 0 2dp 0; }
+#pop .msg.bad { color: #ff7a7a; }
+#pop .yn { display: flex; flex-direction: row; justify-content: center; margin-top: 2dp; }
+#pop .yn .menu-item { width: 72dp; text-align: center; margin: 0 4dp; }
+/* 터치: 개수 ◀ ▶는 눌러 맞추는 버튼으로 키운다(원작 화살표는 14dp) */
+body.touch #pop .qrow { height: 28dp; }
+body.touch #pop .qrow .arrow { width: 30dp; }
+body.touch #pop .qrow .arrow span { display: block; width: 28dp; height: 24dp; line-height: 24dp; text-align: center; background-color: #2a3470; border: 1dp #8c96e8; border-radius: 3dp; color: #fff; }
+body.touch #pop .yn .menu-item { height: 24dp; line-height: 24dp; }
+/* 분류 탭은 누를 수 있다(ui_shop.c stab). 터치에서는 손가락 크기로 */
+.tabhint { margin-left: auto; align-self: center; font-size: 10dp; color: #9aa2d8; white-space: nowrap; }
+.tabhint .key { margin: 0 2dp 0 0; font-size: 10dp; }
+body.touch .tabs .tab { height: 20dp; line-height: 20dp; padding: 2dp 12dp; }
+.tabs .tab.hover { color: #fff; border-color: #a9a0ff; }
+/* 아래 고정 버튼: 필드 메뉴 틀의 버튼 띠(fmshell.rcss .fb)와 같은 크기·모양. 오른쪽 끝 「이전」/「나가기」, 그 왼쪽 「결정」 */
+#bottom .money { flex: 1 1 0; }
+.sbar { flex: 0 0 auto; display: flex; flex-direction: row; }
+.sbw { flex: 0 0 84dp; width: 84dp; margin-left: 3dp; }
+.narrow .sbw { flex: 0 0 60dp; width: 60dp; }
+.fb { display: flex; flex-direction: row; justify-content: center; align-items: center; height: 24dp; padding: 0 6dp; box-sizing: border-box;
+      white-space: nowrap; color: #fff; background-color: #2a3470; border: 1dp #8c96e8; border-radius: 3dp; }
+.fb.fok { decorator: horizontal-gradient(#3f78f0 #2a4ab8); border-color: #a8c4ff; }
+.fb.off, .fb.fok.off { color: #6c74a0; background-color: #161a3e; border-color: #3a4280; decorator: none; }
+.fb.hover { background-color: #3a46a0; border-color: #ffffce; }
+.fb.fok.hover { decorator: horizontal-gradient(#5a90ff #3a5ad8); border-color: #ffffce; }
+.fb.press { background-color: #3f78f0; }
+.fbk { margin-left: 4dp; padding-left: 4dp; border-left: 1dp #8c96e8; font-size: 10dp; line-height: 12dp; color: #cfd3ff; }
+body.touch .fbk, .narrow .fbk { display: none; }
+#bottom { padding-top: 3dp; padding-bottom: 3dp; }
+</style></head>
+<body data-model="shop">
+<div class="screen dim col-flex" data-class-narrow="d.narrow">
+  <div id="main" class="row-flex">
+    <!-- 왼쪽 -->
+    <div id="left" class="col-flex" data-class-menuonly="d.state != 2" data-if="d.state != 4">
+      <div id="listpanel" class="panel pop col-flex" data-class-full="d.state == 2">
+        <div class="title"><span>{{d.title}}</span><span class="sub" data-if="d.state == 2 &amp;&amp; d.total > 0">{{d.pos}}/{{d.total}}</span></div>
+        <vlist if="d.state == 0" for="m : d.menu" nav="top" idx="it_index" sel="it_index == d.mcur" label="m.t"/>
+        <vlist if="d.state == 1" for="m : d.menu" nav="cat" idx="it_index" sel="it_index == d.mcur" label="m.t"/>
+        <div class="tabs" data-if="d.tabs">
+          <div data-for="t : d.tablist" class="tab" pick="stab" data-attr-idx="it_index" data-class-sel="it_index == d.tcur">{{t.t}}</div>
+          <!-- 게임패드 LB/RB로 분류 탭을 넘긴다(host pad_shortcut이 shoulder 요소를 누른다). 전에는 눌러야만 바뀌었다 -->
+          <span class="shk" shoulder="prev" pick="stab" data-attr-idx="d.tprev"></span><span class="shk" shoulder="next" pick="stab" data-attr-idx="d.tnext"></span>
+          <span class="tabhint ponly"><span class="key">{{'lb' | padkey}}</span><span class="key">{{'rb' | padkey}}</span></span>
+        </div>
+        <div class="col-flex grow" data-if="d.state == 2">
+          <div class="colhead small gap-v"><span class="name">품목</span><span class="price">{{d.price_label}}</span><span class="own">보유</span></div>
+          <vlist class="grow" scroll="slist" for="it : d.items" nav="items" idx="it.i" sel="it.i == d.cur" icon="it.icon" label="it.name"><span class="price" data-class-poor="it.poor">{{it.price}}{{d.unit}}</span><span class="own">{{it.owned}}</span></vlist>
+        </div>
+      </div>
+      <!-- 처음/분류 화면의 파티(원본 오른쪽 얼굴 칸) -->
+      <div class="party panel flat pop" data-if="d.state != 2">
+        <h2>파티</h2>
+        <div class="members">
+          <div data-for="p : d.party" class="mem">
+            <div class="face"><img data-if="p.face != ''" data-attr-src="p.face"/></div>
+            <div class="nm small">{{p.name}}</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 오른쪽 -->
+    <div id="right" class="col-flex" data-if="d.state != 4">
+      <div id="preview" class="panel flat pop col-flex" data-if="d.preview">
+        <h2>판매 품목 {{d.total}}</h2>
+        <!-- 보기만 하는 목록(고르지 않는다): 같은 줄 모양을 쓰려고 nav 없는 <vlist> -->
+        <vlist for="it : d.items" icon="it.icon" label="it.name"><span class="price" data-class-poor="it.poor">{{it.price}}{{d.unit}}</span><span class="own">{{it.owned}}</span></vlist>
+      </div>
+      <div id="detail" class="panel pop" data-if="d.has_sel">
+        <div class="head">
+          <span class="bigicon"><img data-if="d.sicon != ''" data-attr-src="d.sicon" data-style-width="(d.narrow ? d.sicon_w : d.sicon_w * 2) + 'dp'" data-style-height="(d.narrow ? d.sicon_h : d.sicon_h * 2) + 'dp'"/></span>
+          <span data-class-big="!d.narrow">{{d.sname}}</span>
+        </div>
+        <div class="desc">{{d.sdesc}}</div>
+        <div class="stats" data-if="d.statkind == 1">
+          <div class="stat"><span class="label">P.ATT</span><span class="num">{{d.st1}}</span></div>
+          <div class="stat"><span class="label">M.ATT</span><span class="num">{{d.st2}}</span></div>
+          <div class="stat"><span class="label">HIT</span><span class="num">{{d.st3}}</span></div>
+        </div>
+        <div class="stats" data-if="d.statkind == 2">
+          <div class="stat"><span class="label">P.DEF</span><span class="num">{{d.st1}}</span></div>
+          <div class="stat"><span class="label">M.DEF</span><span class="num">{{d.st2}}</span></div>
+          <div class="stat"><span class="label">{{d.st3_label}}</span><span class="num">{{d.st3}}</span></div>
+        </div>
+        <div class="sep"></div>
+        <div class="kv2"><span class="label">{{d.price_label}}</span><span class="gold">{{d.sprice}}{{d.unit}}</span><span class="sp"></span><span class="label">보유</span><span class="num">{{d.sowned}}</span></div>
+      </div>
+      <!-- 구입 목록의 파티: 고른 품목을 장착할 수 있는지(원본은 못 하는 얼굴을 어둡게), 같은 부위에 지금 장착한 것과 능력치 차이 -->
+      <div class="party panel flat pop" data-if="d.state == 2">
+        <h2>파티</h2>
+        <div class="members">
+          <div data-for="p : d.party" class="mem" data-class-no="!p.can">
+            <div class="face"><img data-if="p.face != ''" data-attr-src="p.face"/></div>
+            <div class="nm small">{{p.name}}</div>
+            <div class="tag" data-if="d.isequip"><span class="good" data-if="p.can">장착 가능</span><span class="bad" data-if="!p.can">불가</span></div>
+            <div class="eq" data-if="p.eq != ''">{{p.eq}}</div>
+            <div class="eq" data-if="d.isequip &amp;&amp; p.eq == ''">(없음)</div>
+            <div class="d" data-if="d.cmp &amp;&amp; p.can"><span>{{d.l1}} </span><span data-class-good="p.d1 > 0" data-class-bad="p.d1 &lt; 0">{{p.d1 > 0 ? '+' : ''}}{{p.d1}}</span></div>
+            <div class="d" data-if="d.cmp &amp;&amp; p.can"><span>{{d.l2}} </span><span data-class-good="p.d2 > 0" data-class-bad="p.d2 &lt; 0">{{p.d2 > 0 ? '+' : ''}}{{p.d2}}</span></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 아래: 소지금, 키 안내 -->
+  <div id="bottom" class="panel flat">
+    <div class="money"><span class="gold">{{d.gold}} G</span><span class="num gap" data-if="d.coins">{{d.coin_text}}</span></div>
+    <div class="sbar">
+      <div class="sbw"><div class="fb fok" key="ok" data-if="d.ok_on"><span>{{d.ok_t}}</span><span class="fbk">{{'ok' | key}}</span></div><div class="fb fok off" data-if="!d.ok_on"><span>{{d.ok_t}}</span></div></div>
+      <div class="sbw"><div class="fb" key="clear" data-if="!d.exit"><span>{{d.back_t}}</span><span class="fbk">{{'clear' | key}}</span></div><div class="fb" pick="sexit" idx="0" data-if="d.exit"><span>{{d.back_t}}</span><span class="fbk">{{'clear' | key}}</span></div></div>
+    </div>
+  </div>
+</div>
+
+<!-- 팝업: 개수 / 부족 / MAX 초과 / 구입 확인 (0x367bc, 머리 0x36a84) -->
+<div id="popwrap" data-if="d.pop" data-class-narrow="d.narrow">
+  <div id="pop" class="panel gold pop">
+    <div class="title"><span>{{d.ptitle}}</span></div>
+    <div class="head" data-if="d.type != 4">
+      <span class="icon"><img data-if="d.sicon != ''" data-attr-src="d.sicon"/></span>
+      <span class="small dimtx">{{d.sdesc}}</span>
+    </div>
+    <div data-if="d.sub == 1 || d.sub == 4 || d.type == 4">
+      <div class="kv qrow gap-v"><span class="label">{{d.pqty_label}}</span><span class="arrow"><span key="left" data-if="d.sub == 1">◀</span></span><span class="n big">{{d.qty}}</span><span class="arrow"><span key="right" data-if="d.sub == 1">▶</span></span></div>
+      <div class="kv" data-if="d.type != 4"><span class="label">{{d.pcost_label}}</span><span class="gold">{{d.ptotal}}{{d.unit}}</span></div>
+      <div class="kv" data-if="d.type != 4"><span class="label">{{d.after_label}}</span><span data-class-bad="d.after &lt; 0">{{d.after}}{{d.unit}}</span></div>
+      <div class="kv" data-if="d.type == 4"><span class="label">{{d.pcost}}</span></div>
+      <div class="kv" data-if="d.type == 4"><span class="label">{{d.hold_coin_label}}</span><span class="num">{{d.coin}} C</span></div>
+      <div class="kv" data-if="d.type == 4"><span class="label">소지금</span><span class="gold">{{d.gold}} G</span></div>
+    </div>
+    <div class="msg" data-class-bad="d.sub != 4" data-if="d.sub >= 2">{{d.msg}}</div>
+    <div class="yn" data-if="d.sub == 4">
+      <div class="menu-item" nav="yn" idx="0" data-class-sel="d.yesno == 0">{{d.yes}}</div>
+      <div class="menu-item" nav="yn" idx="1" data-class-sel="d.yesno == 1">{{d.no}}</div>
+    </div>
+  </div>
+</div>
+</body></rml>

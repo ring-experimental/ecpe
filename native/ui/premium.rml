@@ -1,0 +1,161 @@
+<rml><head><link type="text/rcss" href="base.rcss"/><link type="text/rcss" href="fmshell.rcss"/>
+<title>프리미엄 상점</title>
+<!-- 프리미엄 상점(옵션 목록 맨 아래 줄, restored/ui_premium.c). 테스트판이라 전부 무료.
+     d.tab 0 상점 / 1 보관함. 왼쪽 카드 목록(아이콘·이름·가격·보유), 오른쪽 고른 품목 자세히(설명, 수량 스테퍼, 받기/사용).
+     랜덤 상자를 열면 d.card 결과 카드가 위에 뜬다(등급 d.card_rar 0~3 색).
+     키: ▲▼ 품목, ◀▶ 수량, # 최대 수량, OK 받기/사용, * 탭, CLR 닫기. 터치: 탭·MAX는 pick="prem", 목록은 pick="pl"(고르기만, 받기·사용은 버튼), 수량은 key.
+     강화석은 받기만 하고 강화는 장비 화면에서만 한다(사용자 결정 2026-11-11).
+     필드 메뉴 틀 안(body.shell)이다: 레일 오른쪽 내용 자리에 놓이고, 받기·사용·닫기는 아래 고정 버튼 띠(「결정」「이전」)가 맡는다.
+     게임패드 LB/RB는 틀의 레일이라 탭에 달지 않는다(탭은 X = *). 결과 카드의 막은 내용 자리만 덮는다(.fmarea). -->
+<style>
+#top { display: flex; flex-direction: row; align-items: center; height: 28dp; padding: 0 8dp; }
+#top .ttl { color: #ffd75e; margin-right: 8dp; }
+#top .test { padding: 0 6dp; height: 14dp; line-height: 14dp; font-size: 10dp; color: #1a1050; background-color: #ffd75e; border-radius: 7dp; }
+#top .sp { flex: 1 1 0; }
+.tbtn { padding: 0 12dp; height: 20dp; line-height: 20dp; margin-left: 4dp; color: #c8cdf6; background-color: #10143290; border: 1dp #4a5296; border-radius: 3dp; white-space: nowrap; }
+.tbtn.sel { color: #fff; decorator: horizontal-gradient(#6a3ad6 #3a34a8); border-color: #a9a0ff; }
+.tbtn.enh { color: #ffd75e; border-color: #f2c84a; }
+.tbtn .k { margin-left: 4dp; color: #8c96e8; font-size: 10dp; }
+body.touch .tbtn { height: 26dp; line-height: 26dp; }
+body.touch .tbtn .k { display: none; }
+
+#mid { margin-top: 6dp; }
+#lp { flex: 1 1 0; min-width: 0; margin-right: 8dp; }
+#rp { width: 236dp; flex: 0 0 auto; }
+/* 품목 목록(세로 목록 부품, 두 줄 크기): 보유 수는 이름 아래 줄(.vsub), 오른쪽 값 칸은 상점 탭의 가격만(좁게).
+   전에는 가격 열과 보유 열을 둘 다 오른쪽에 두어 좁은 목록에서 이름 칸이 0이 되어 이름이 안 보였다 */
+#plist .vval { flex: 0 0 auto; width: auto; margin-left: 4dp; text-align: right; color: #7df08c; }
+.narrow #plist .vsub { display: none; }
+#plist .vrow.r1 { border-color: #5a9ad6; }
+#plist .vrow.r2 { border-color: #b070ff; }
+#plist .vrow.r3 { border-color: #ffb040; }
+.empty { color: #8c94c4; text-align: center; margin-top: 30dp; }
+
+/* 상세 */
+#head { display: flex; flex-direction: row; align-items: center; }
+#head .big { flex: 0 0 auto; width: 36dp; height: 36dp; margin-right: 8dp; background-color: #0a0e28; border: 1dp #4a5296; border-radius: 3dp; display: flex; align-items: center; justify-content: center; }
+#head .big.r1 { border-color: #5a9ad6; } #head .big.r2 { border-color: #b070ff; } #head .big.r3 { border-color: #ffb040; }
+#head .nm { font-size: 16dp; line-height: 18dp; }
+#head .own { color: #9aa2d8; font-size: 10dp; }
+#desc { margin-top: 6dp; min-height: 42dp; color: #e4e8ff; }
+#qrow { display: flex; flex-direction: row; align-items: center; margin-top: 6dp; }
+#qrow .lab { flex: 0 0 auto; width: 40dp; color: #9aa2d8; }
+.step { flex: 0 0 auto; width: 26dp; height: 22dp; line-height: 22dp; text-align: center; color: #fff; background-color: #2a3470; border: 1dp #8c96e8; border-radius: 3dp; }
+.step.off { opacity: 0.35; }
+.qn { flex: 0 0 auto; width: 36dp; text-align: center; color: #fff; font-size: 16dp; }
+.max { flex: 0 0 auto; margin-left: 4dp; padding: 0 4dp; white-space: nowrap; height: 22dp; line-height: 22dp; color: #ffd75e; border: 1dp #f2c84a; border-radius: 3dp; }
+#note { margin-top: 3dp; font-size: 10dp; color: #8c94c4; }
+#note.warn { color: #ff9a7a; }
+#price { margin-top: 4dp; display: flex; flex-direction: row; }
+#price .v { color: #7df08c; margin-left: 6dp; }
+#price .l { color: #9aa2d8; }
+#go { margin-top: 8dp; height: 26dp; line-height: 26dp; text-align: center; color: #1a1050; decorator: horizontal-gradient(#ffe37a #ffb040); border: 1dp #fff3c0; border-radius: 4dp; font-size: 14dp; }
+#go.off { opacity: 0.4; }
+#go .k { margin-left: 6dp; font-size: 10dp; color: #5a4020; }
+body.touch #go .k { display: none; }
+.max .k { margin-left: 3dp; font-size: 10dp; color: #cfd3ff; }
+body.touch .max .k { display: none; }
+#go.off { color: #3a3a5a; }
+
+#bot { margin-top: 6dp; height: 22dp; display: flex; flex-direction: row; align-items: center; }
+
+/* 결과 카드 */
+.cwrap { position: absolute; left: 0; top: 0; width: 100%; height: 100%; display: flex; justify-content: center; align-items: center; background-color: #070a1ca0; }
+#cardbox { width: 220dp; padding: 12dp 14dp; text-align: center; box-sizing: border-box; background-color: #161a3ef8; border: 2dp #8c96e8; border-radius: 6dp; }
+#cardbox.r1 { border-color: #5a9ad6; } #cardbox.r2 { border-color: #b070ff; } #cardbox.r3 { border-color: #ffb040; }
+#cardbox .rar { font-size: 10dp; color: #cfd3ff; }
+#cardbox.r1 .rar { color: #8cc4ff; } #cardbox.r2 .rar { color: #d0a0ff; } #cardbox.r3 .rar { color: #ffc870; }
+#cardbox .cic { margin: 8dp auto 4dp auto; width: 44dp; height: 44dp; display: flex; align-items: center; justify-content: center; }
+#cardbox .cnm { font-size: 16dp; line-height: 20dp; }
+#cardbox .cds { margin-top: 4dp; color: #c8cdf6; font-size: 10dp; line-height: 12dp; }
+#cardbox .ok { margin-top: 10dp; height: 22dp; line-height: 22dp; color: #fff; background-color: #2a3470; border: 1dp #8c96e8; border-radius: 3dp; }
+
+/* 좁은 화면: 위아래로 */
+.narrow #mid { flex-direction: column; }
+.narrow #lp { margin-right: 0; flex: 0 0 auto; height: 100dp; }
+.narrow #rp { width: 100%; margin-top: 4dp; flex: 1 1 0; }
+.narrow #plist .vrow { height: 22dp; margin-bottom: 2dp; }
+.narrow #plist .vic { display: none; }
+.narrow #desc { min-height: 28dp; }
+.narrow #head .big { width: 24dp; height: 24dp; }
+.narrow #top .test, .narrow #top .ttl { display: none; }
+.narrow.screen, .narrow .screen { padding: 6dp 8dp; }
+.narrow #top { height: 24dp; }
+.narrow #mid { margin-top: 4dp; }
+/* 틀 안: 받기 단추가 버튼 띠로 갔으니 상세는 위로 붙인다. 좁으면 목록·상세를 위아래로 */
+body.shell #top .test { display: none; }
+body.shell #rp { width: 190dp; }
+body.shell.narrow #rp { width: 100%; }
+#top .tbtn.hover, .step.hover, .max.hover { border-color: #ffffce; }
+.narrow #lp { height: 94dp; padding: 3dp 6dp; }
+.narrow #rp { padding: 4dp 6dp; }
+.narrow #price { display: none; }
+.narrow #desc { min-height: 0; margin-top: 2dp; }
+.narrow #qrow { margin-top: 3dp; }
+.narrow #go { margin-top: 4dp; height: 24dp; line-height: 24dp; }
+.narrow #bot { margin-top: 2dp; height: 20dp; }
+.narrow .step, .narrow .max { height: 20dp; line-height: 20dp; }
+.narrow .tbtn { padding: 0 6dp; }
+</style></head>
+<body data-model="premium" data-class-narrow="d.narrow" data-class-shell="d.shell" data-class-chars="d.chars">
+<div class="screen col-flex" data-class-dim-soft="!d.shell">
+  <div id="top" class="panel">
+    <span class="ttl">프리미엄 상점</span><span class="test">테스트판 · 전부 무료</span>
+    <span class="sp"></span>
+    <span class="tbtn" data-class-sel="d.tab == 0" pick="prem" idx="0">상점<span class="k" data-if="d.tab != 0">{{'star' | key}}</span></span>
+    <span class="tbtn" data-class-sel="d.tab == 1" pick="prem" idx="1">보관함 {{d.vault_n}}<span class="k" data-if="d.tab != 1">{{'star' | key}}</span></span>
+  </div>
+
+  <div id="mid" class="row-flex grow">
+    <div id="lp" class="panel pop col-flex">
+      <div class="empty" data-if="d.count == 0">가진 새 아이템이 없습니다.<br/>상점 탭에서 받을 수 있습니다.</div>
+      <vlist id="plist" class="grow" size="l" scroll="plist" for="it : d.items" pick="pl" idx="it.i" sel="it.i == d.cur"
+             row-class='data-class-r1="it.rar == 1" data-class-r2="it.rar == 2" data-class-r3="it.rar == 3"'
+             icon="it.icon" label="it.name" sub="'보유 ' + it.own" value="d.tab == 0 ? (it.free ? '무료' : it.price + '') : ''"></vlist>
+          </div>
+
+    <div id="rp" class="panel pop col-flex">
+      <div data-if="d.has" class="col-flex grow">
+        <div id="head">
+          <div class="big" data-class-r1="d.rar == 1" data-class-r2="d.rar == 2" data-class-r3="d.rar == 3"><img data-if="d.sicon != ''" data-attr-src="d.sicon" data-style-width="(d.sicon_w * 2) + 'dp'" data-style-height="(d.sicon_h * 2) + 'dp'"/></div>
+          <div><div class="nm">{{d.sname}}</div><div class="own">보유 {{d.sown}} / 99</div></div>
+        </div>
+        <div id="desc">{{d.sdesc}}</div>
+        <div data-if="d.tab == 0" class="col-flex">
+          <div id="qrow">
+            <span class="lab">수량</span>
+            <span class="step" data-class-off="d.qty &lt;= 1" key="left">◀</span>
+            <span class="qn">{{d.qty}}</span>
+            <span class="step" data-class-off="d.qty &gt;= d.room" key="right">▶</span>
+            <span class="max" pick="prem" idx="3">MAX<span class="k">{{'hash' | key}}</span></span>
+          </div>
+          <div id="note" data-class-warn="d.full">{{d.full ? '이미 99개를 가지고 있습니다' : '보유 상한 99개 · ' + d.room + '개 더 받을 수 있음'}}</div>
+          <div id="price"><span class="l">가격</span><span class="v">{{d.price == 0 ? '무료 (테스트판)' : d.price}}</span></div>
+        </div>
+        <div class="grow"></div>
+        <div id="go" data-if="!d.shell" data-class-off="d.tab == 0 &amp;&amp; d.full" key="ok">{{d.act}}<span class="k">{{ 'ok' | key }}</span></div>
+      </div>
+      <div data-if="!d.has" class="empty">보관함이 비어 있습니다</div>
+    </div>
+  </div>
+
+  <div id="bot" class="keys" data-if="!d.shell">
+    <span class="kb nav"><span class="key">▲▼</span>선택</span>
+    <span class="kb nav" data-if="d.tab == 0"><span class="key">◀▶</span>수량</span>
+    <span class="kb" key="ok"><span class="key">{{'ok' | key}}</span>{{d.tab == 0 ? '받기' : '사용'}}</span>
+    <span class="kb" pick="prem" data-attr-idx="d.tab == 0 ? 1 : 0"><span class="key">{{'star' | key}}</span>{{d.tab == 0 ? '보관함' : '상점'}}</span>
+    <span class="kb" key="clear"><span class="key">{{'clear' | key}}</span>닫기</span>
+  </div>
+</div>
+
+<div data-if="d.shell"><fmbar/></div>
+<div id="cardwrap" class="cwrap fmarea" data-if="d.card" pick="prem" idx="4">
+  <div id="cardbox" data-class-r1="d.card_rar == 1" data-class-r2="d.card_rar == 2" data-class-r3="d.card_rar == 3">
+    <div class="rar">랜덤 상자 · {{d.card_rar_name}}</div>
+    <div class="cic"><img data-if="d.card_icon != ''" data-attr-src="d.card_icon" data-style-width="(d.card_icon_w * 2) + 'dp'" data-style-height="(d.card_icon_h * 2) + 'dp'"/></div>
+    <div class="cnm">{{d.card_name}} ×{{d.card_n}}</div>
+    <div class="cds">{{d.card_desc}}</div>
+    <div class="ok" key="ok">확인</div>
+  </div>
+</div>
+</body></rml>

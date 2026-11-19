@@ -1,0 +1,40 @@
+<rml><head><link type="text/rcss" href="base.rcss"/><link type="text/rcss" href="fmchar.rcss"/><link type="text/rcss" href="fmshell.rcss"/>
+<title>퀘스트</title>
+<style>
+/* 필드 메뉴 화면 5 퀘스트(원본 0x338b8). 원본은 한 번에 한 퀘스트 글만 보이고 좌우로 넘긴다.
+   넓은 화면에서는 왼쪽에 등록된 퀘스트 전체 목록(보고 있는 것 강조), 오른쪽에 그 글 전체를 둔다. */
+#main { flex: 1 1 0; display: flex; flex-direction: row; min-height: 0; }
+#list { width: 220dp; flex: 0 0 auto; }
+/* 목록은 vlist 부품(scroll 상자). 폭이 좁으면 높이를 줄여 글 상자와 함께 들어간다. */
+#desc { flex: 1 1 0; margin-left: 6dp; min-width: 0; }
+#qtext, .qbody { line-height: 18dp; margin-top: 4dp; }
+#qno { color: #ffd75e; }
+body.narrow #main { flex-direction: column; }
+body.narrow #list { width: auto; flex: 0 1 auto; min-height: 0; max-height: 128dp; }
+body.narrow #list .vlist { flex: 0 1 auto; } /* 창 높이가 내용으로 정해지므로 목록도 내용 높이(넘치면 창 max-height 안에서 넘긴다) */
+body.narrow #desc { margin-left: 0; margin-top: 4dp; }
+.tarrow { color: #ffd75e; }
+.title .sub { white-space: nowrap; }
+body.touch .tarrow { padding: 2dp 8dp; margin-left: 2dp; background-color: #2a3470; border: 1dp #8c96e8; border-radius: 3dp; }
+body.shell .oldkeys { display: none; }
+</style></head>
+<body data-model="fmchar_quest" data-class-narrow="d.narrow" data-class-shell="d.shell" data-class-chars="d.chars">
+<div class="screen col-flex" data-class-narrow="d.narrow" data-class-dim="!d.shell">
+  <div id="main">
+    <div id="list" class="panel pop col-flex">
+      <div class="title">{{d.title}}<span class="sub">{{d.page}}/{{d.count}}</span></div>
+      <vlist class="grow" scroll="qlist" for="it : d.items" nav="quests" idx="it.i" sel="it_index == d.cursor" lead="it.no" label="it.text"/>
+    </div>
+    <div id="desc" class="panel pop col-flex">
+      <div class="title"><span id="qno" data-if="d.count > 0">#{{d.page}}</span><span class="sub" data-if="d.count > 1"><span class="tarrow" key="left">◀</span> <span class="tarrow" key="right">▶</span></span></div>
+      <div id="qtext" data-if="d.count > 0">{{d.text}}</div>
+      <div class="qbody dimtx" data-if="d.count == 0">{{d.none}}</div>
+    </div>
+  </div>
+  <div class="panel flat gap-v oldkeys"><div class="keys">
+    <span class="kb" key="clear"><span class="key">{{ 'clear' | key }}</span>이전</span>
+    <span class="kb nav" data-if="d.count > 1"><span class="key">◀▶</span>퀘스트 넘기기</span>
+  </div></div>
+</div>
+<fmbar/>
+</body></rml>

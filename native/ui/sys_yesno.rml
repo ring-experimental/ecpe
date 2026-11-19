@@ -1,0 +1,18 @@
+<rml><head><link type="text/rcss" href="base.rcss"/>
+<!-- 예/아니오 상자 0x37c08이 화면 7(system 문서) 밖에서 불렸을 때 쓰는 문서. 지금 원본에서 0x37c08을 부르는 곳은 화면 7뿐이라
+     보통은 쓰이지 않지만, 이 상자를 그리는 함수는 이 영역이 맡으므로 어디서 불려도 비지 않게 둔다. -->
+<style>
+#dlg { position: absolute; left: 0; top: 0; width: 100%; height: 100%; display: flex; justify-content: center; align-items: center; background-color: #070a1c80; }
+#dlg .panel { width: 240dp; padding: 10dp 12dp; }
+.q { text-align: center; margin: 6dp 0 10dp 0; }
+.btns { display: flex; flex-direction: row; justify-content: center; }
+.btn { width: 80dp; margin: 0 4dp; text-align: center; height: 20dp; line-height: 20dp; }
+body.narrow #dlg .panel { width: 200dp; }
+</style></head>
+<body data-model="sys_yesno" data-class-narrow="d.narrow">
+<div id="dlg"><div class="panel gold pop">
+  <div class="q">{{d.q}}</div>
+  <div class="btns"><div class="btn menu-item" nav="yn" idx="0" data-class-sel="d.sel == 0">{{d.yes}}</div><div class="btn menu-item" nav="yn" idx="1" data-class-sel="d.sel == 1">{{d.no}}</div></div>
+  <div class="keys mid gap-v"><span class="nav kb"><span class="key">←→</span>선택</span><span class="kb" key="ok"><span class="key">{{'ok' | key}}</span>확인</span></div>
+</div></div>
+</body></rml>

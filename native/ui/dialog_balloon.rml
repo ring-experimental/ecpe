@@ -1,0 +1,11 @@
+<rml><head><link type="text/rcss" href="base.rcss"/><link type="text/rcss" href="dialog.rcss"/>
+<!-- 말풍선(vtable 0x4dbec, 스크립트 0x8a/0x8b): 액터 머리 위 한 줄 글(+0x100이면 화면 위 띠). 원본이 글을 쓴 자리(게임 px = dp)를
+     기준으로 같은 자리에 둥근 말풍선을 놓는다. 시간이 지나면 원본이 스스로 닫는다. -->
+<style>
+.bal { position: absolute; white-space: nowrap; background-color: #f4f6ffee; color: #161a3e; border: 1dp #8c96e8; border-radius: 6dp; padding: 1dp 6dp; }
+.bal.top { background-color: #12163aee; color: #fff; }
+</style></head>
+<body data-model="dialog_balloon">
+<div class="bal fade" data-for="b : d.items" data-class-top="b.top"
+     data-style-left="(b.x - 6) + 'dp'" data-style-top="(b.y - 3) + 'dp'"><span>{{b.t}}</span></div>
+</body></rml>

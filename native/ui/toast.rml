@@ -1,0 +1,13 @@
+<rml><head><link type="text/rcss" href="base.rcss"/>
+<title>토스트</title>
+<!-- 화면 가운데 위에 잠깐 뜨는 알림(restored/items_ext.c ext_toast). 새 UI가 꺼져도 보인다(host/ui.cpp). 누를 것이 없어 입력에 끼지 않는다. -->
+<style>
+#toasts { position: absolute; left: 0; top: 8dp; width: 100%; display: flex; flex-direction: column; align-items: center; }
+.toast { margin-bottom: 4dp; padding: 5dp 14dp; white-space: nowrap; overflow: hidden; background-color: #12163aee; border: 1dp #f2c84a; border-radius: 4dp; color: #fff; text-align: center; }
+body.open .toast { animation: 0.14s cubic-out pop-in; }
+</style></head>
+<body data-model="toast">
+<div id="toasts">
+  <div data-for="l : d.lines" class="toast"><span>{{l.t}}</span></div>
+</div>
+</body></rml>

@@ -1,0 +1,12 @@
+<rml><head><link type="text/rcss" href="base.rcss"/><link type="text/rcss" href="dialog.rcss"/>
+<!-- 세기 띠(0x12c08 → 0x12b98 → 0x23578): "%d"(남은 수, G+0x6be)와 "%d마리"(G+0x6c2 - G+0x6c3). 위쪽 가운데 작은 칩. -->
+<style>
+.chip { background-color: #12163ad8; border: 1dp #f2c84a; border-radius: 8dp; padding: 2dp 12dp; color: #fff; }
+.chip span { color: #ffd75e; }
+.chip { margin: 0 3dp; }
+</style></head>
+<body data-model="dialog_counter">
+<div class="stage-top">
+  <div class="row-flex"><div class="chip" data-for="it : d.lines"><span class="big">{{it.t}}</span></div></div>
+</div>
+</body></rml>

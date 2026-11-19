@@ -1,0 +1,52 @@
+/* 세로 목록 부품 <vlist>(host/ui_vlist.cpp가 펼친다, 쓰는 법은 ui/README.md '세로 목록 <vlist>').
+   문서에 <vlist>가 있으면 호스트가 이 파일을 <head> 맨 앞에 건다. 문서 <style>에서 줄 모양을 다시 정하지 않는다.
+   목록 화면이 모두 같은 줄 높이·선택 띠·스크롤바·빈 목록 글을 갖게 하려는 것이다(Xbox 접근성 지침 112: 같은 부품은 화면마다 같게).
+
+   줄 구성(왼쪽부터): [아이콘 .vic] [짧은 표 .vlead] [이름 .vlabel / 아래 줄 .vsub] [배지 .vbadge] [안쪽 내용] [값 .vval]
+   아이콘은 icon 속성을 줬을 때만 칸이 생긴다. */
+
+.vlist { display: block; overflow-y: auto; min-height: 0; }
+.vlist scrollbarvertical { width: 3dp; margin-left: 2dp; }
+.vlist scrollbarvertical slidertrack { background-color: #ffffff10; }
+.vlist scrollbarvertical sliderbar { background-color: #8c96e8a0; border-radius: 2dp; min-height: 12dp; }
+.vlist scrollbarvertical sliderarrowdec, .vlist scrollbarvertical sliderarrowinc { width: 0; height: 0; }
+
+.vrow { display: flex; flex-direction: row; align-items: center; box-sizing: border-box; height: 18dp; padding: 0 6dp; margin-bottom: 1dp;
+        border: 1dp #00000000; border-radius: 3dp; white-space: nowrap; color: #e4e8ff; }
+.vrow:last-child { margin-bottom: 0; }
+
+/* 크기: s 작은 줄(10dp 글, 촘촘한 목록), m 보통, l 두 줄(이름 + 아래 줄, 카드형) */
+.v-s .vrow { height: 14dp; font-size: 10dp; line-height: 12dp; padding: 0 4dp; }
+.v-l .vrow { height: 30dp; margin-bottom: 2dp; padding: 0 8dp; background-color: #10143270; border-color: #2c3470; }
+
+/* 칸 */
+.vic { flex: 0 0 18dp; width: 18dp; height: 16dp; margin-right: 4dp; display: flex; justify-content: center; align-items: center; }
+.v-l .vic { flex: 0 0 24dp; width: 24dp; height: 26dp; margin-right: 6dp; }
+.v-s .vic { flex: 0 0 14dp; width: 14dp; height: 12dp; margin-right: 3dp; }
+.vlead { flex: 0 0 auto; min-width: 12dp; margin-right: 5dp; text-align: center; color: #ffd75e; font-size: 10dp; }
+.vtx { flex: 1 1 0; min-width: 0; display: flex; flex-direction: column; justify-content: center; overflow: hidden; }
+.vlabel { display: block; white-space: nowrap; overflow: hidden; }
+.vsub { display: block; white-space: nowrap; overflow: hidden; font-size: 10dp; line-height: 12dp; color: #9aa2d8; }
+.vbadge { flex: 0 0 auto; margin-left: 4dp; padding: 0 3dp; height: 12dp; line-height: 12dp; font-size: 10dp; border-radius: 2dp; color: #1a1050; background-color: #ffd75e; }
+.vval { flex: 0 0 auto; margin-left: 6dp; text-align: right; color: #cfd3ff; }
+.v-m .vval, .v-l .vval { font-size: 10dp; }
+
+/* 상태: sel 지금 고른 줄(입력을 받는 창), idle 다른 창에 포커스가 있을 때의 고른 줄, dis 쓸 수 없는 줄, off 감춘 줄 */
+.vrow.sel { decorator: horizontal-gradient(#3f78f0 #2a4ab8); border-color: #a8c4ff; color: #fff; }
+.vrow.sel .vval, .vrow.sel .vsub { color: #e8eeff; }
+.vrow.idle { background-color: #2a3470; border-color: #4a5296; }
+.vrow.dis { color: #7c84b0; }
+.vrow.dis .vic img { opacity: 0.5; }
+.vrow.dis .vval { color: #6c74a0; }
+.vrow.sel.dis { color: #c8cdf0; }
+.vrow.sel.dis .vval { color: #dfe4ff; } /* 고른 줄은 쓸 수 없어도 값이 파란 띠 위에서 읽혀야 한다 */
+.vrow.off { display: none; }
+/* 원본 목록처럼 터치로 누르는 동안(호스트 press) */
+.vrow.press { background-color: #3f78f0a0; }
+
+.vempty { color: #8c94c4; padding: 6dp 4dp; text-align: center; }
+
+/* 터치로 조작 중이면 누를 곳을 키운다(Microsoft 10-foot 지침의 최소 32epx ≈ 이 화면의 19dp) */
+body.touch .v-m .vrow { height: 20dp; }
+body.touch .v-s .vrow { height: 18dp; }
+body.touch .v-l .vrow { height: 34dp; }

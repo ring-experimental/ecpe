@@ -1,0 +1,30 @@
+/* 영역 dialog(대사창, 선택창, 알림, 미니맵, 비행정 안내)가 같이 쓰는 모양. base.rcss 위에 얹는다.
+   대사창과 선택창은 화면 아래 가운데 판, 알림은 화면 위 가운데 토스트다. */
+
+/* 아래쪽 판을 놓는 무대: 화면 폭 전체, 아래에서 6dp 띄우고 가운데 정렬 */
+.stage-bottom { position: absolute; left: 0; right: 0; bottom: 6dp; display: flex; flex-direction: row; justify-content: center; align-items: flex-end; }
+.stage-top { position: absolute; left: 0; right: 0; top: 8dp; display: flex; flex-direction: column; align-items: center; }
+
+/* 대사·선택 판: 바탕을 조금 더 짙게(게임 화면 위에 오래 떠 있으므로 글이 잘 읽히게) */
+.talk { background-color: #12163aee; border: 1dp #8c96e8; border-radius: 4dp; padding: 8dp 10dp; box-sizing: border-box; }
+
+/* 이름표: 판 윗변에 걸친 작은 띠 */
+.nameplate { position: absolute; top: -13dp; height: 14dp; padding: 1dp 8dp 0 8dp; box-sizing: border-box; white-space: nowrap;
+  decorator: horizontal-gradient(#6a3ad6 #2a2a8e); border: 1dp #a9a0ff; border-radius: 3dp 3dp 0 0; font-effect: outline(1dp #1a1050); }
+
+/* 한 줄(원본이 나눈 줄을 그대로 놓는다) */
+.ln { height: 16dp; line-height: 16dp; white-space: pre; }
+
+/* 다음 쪽 / 끝 표시 */
+@keyframes bob { from { transform: translateY(0dp); } to { transform: translateY(2dp); } }
+@keyframes blink { from { opacity: 1; } to { opacity: 0.25; } }
+.next-mark { position: absolute; right: -4dp; bottom: -5dp; font-size: 10dp; line-height: 10dp; color: #ffd75e; animation: 0.4s linear-in-out infinite alternate bob; }
+.end-mark { position: absolute; right: -4dp; bottom: -4dp; font-size: 10dp; line-height: 10dp; color: #ffd75e; animation: 0.5s linear-in-out infinite alternate blink; }
+
+/* 토스트(알림): 가운데 정렬 글, 금색 테두리 */
+.toast { background-color: #12163aee; border: 1dp #8c96e8; border-radius: 4dp; padding: 5dp 14dp; text-align: center; box-sizing: border-box; }
+.toast.gold { border-color: #f2c84a; }
+
+/* 대사 넘기는 키 이름표(▼/■ 왼쪽) */
+.okhint { position: absolute; right: 8dp; bottom: -6dp; padding: 0 3dp; font-size: 10dp; line-height: 11dp; color: #cfd3ff; border: 1dp #8c96e8a0; border-radius: 2dp; background-color: #2a347080; }
+body.touch .okhint { display: none; }

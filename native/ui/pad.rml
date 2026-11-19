@@ -1,0 +1,33 @@
+<rml>
+<head><link type="text/rcss" href="ctl.rcss"/><title>pad</title></head>
+<body data-model="ui">
+<!-- 터치 패드. g[번호]는 host/ui.cpp groups 순서다. mode: 2 = 방향+OK+취소(전투 대상 고르기 등 원본이 그리는 선택),
+     3 = 필드(이동, 대화, 메뉴, 지도), 4 = OK와 취소만(전투 내내). 메뉴 문서가 떠 있으면 숨는다(메뉴는 문서를 직접 누른다).
+     play: 플레이 장면인가(host/ui.cpp input_frame). 타이틀 쪽 장면과 필드 메뉴에서는 패드를 보이지 않는다.
+     code는 원본 키(main.c key_from_name과 같은 값): -1~-4 방향, -5 OK, -16 CLEAR, 35 '#', 48 '0'. -->
+<div id="root" data-if="(pad_on &amp;&amp; play &amp;&amp; mode &gt; 0) || edit" data-style-opacity="edit ? 0.9 : alpha / 100">
+  <div id="dpad" class="group" style="width:3em;height:3em;" data-if="edit || mode == 2 || mode == 3" data-style-left="g[0].left" data-style-top="g[0].top" data-style-font-size="g[0].font" data-class-edit="edit" data-class-selected="edit &amp;&amp; selected == 0">
+    <div class="dial"></div>
+    <div class="btn arrow" code="-1" style="left:1em;top:0.05em;"><span class="t">▲</span></div>
+    <div class="btn arrow" code="-2" style="left:1em;top:1.95em;"><span class="t">▼</span></div>
+    <div class="btn arrow" code="-3" style="left:0.05em;top:1em;"><span class="t">◀</span></div>
+    <div class="btn arrow" code="-4" style="left:1.95em;top:1em;"><span class="t">▶</span></div>
+  </div>
+  <div id="ok" class="group" style="width:1.5em;height:1.5em;" data-style-left="g[1].left" data-style-top="g[1].top" data-style-font-size="g[1].font" data-class-edit="edit" data-class-selected="edit &amp;&amp; selected == 1">
+    <div class="btn orb" code="-5"><span class="t">OK</span></div>
+  </div>
+  <div id="menu" class="group" style="width:0.9em;height:0.9em;" data-style-left="g[2].left" data-style-top="g[2].top" data-style-font-size="g[2].font" data-class-edit="edit" data-class-selected="edit &amp;&amp; selected == 2">
+    <div class="btn small" code="-16"><span class="t">{{mode == 3 ? '메뉴' : '취소'}}</span></div>
+  </div>
+  <div id="map" class="group" style="width:0.9em;height:0.9em;" data-if="edit || mode == 3" data-style-left="g[3].left" data-style-top="g[3].top" data-style-font-size="g[3].font" data-class-edit="edit" data-class-selected="edit &amp;&amp; selected == 3">
+    <div class="btn small" code="35"><span class="t">지도</span></div>
+  </div>
+  <div id="zero" class="group" style="width:0.9em;height:0.9em;" data-if="edit || airship" data-style-left="g[4].left" data-style-top="g[4].top" data-style-font-size="g[4].font" data-class-edit="edit" data-class-selected="edit &amp;&amp; selected == 4">
+    <div class="btn small" code="48"><span class="t">이착륙</span></div>
+  </div>
+  <div id="sys" class="group" style="width:0.7em;height:0.7em;" data-if="edit || mode == 3" data-style-left="g[5].left" data-style-top="g[5].top" data-style-font-size="g[5].font" data-class-edit="edit" data-class-selected="edit &amp;&amp; selected == 5">
+    <div class="btn tiny" action="settings"><span class="t">설정</span></div>
+  </div>
+</div>
+</body>
+</rml>

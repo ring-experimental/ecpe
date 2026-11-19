@@ -1,0 +1,12 @@
+<rml><head><link type="text/rcss" href="base.rcss"/><link type="text/rcss" href="dialog.rcss"/>
+<!-- 비행정 안내(0x12b18): 원본은 화면 맨 위 띠 전체를 어둡게 하고 「【이착륙:0번키】」. 위쪽 가운데 칩과 키 표시로. -->
+<style>
+.chip { background-color: #12163ad8; border: 1dp #8c96e8; border-radius: 8dp; padding: 2dp 12dp; }
+body.touch #hud .key { display: none; } /* 터치는 화면 패드의 이착륙 버튼을 쓴다 */
+#hud .key { margin-left: 6dp; }
+</style></head>
+<body data-model="dialog_hud">
+<div class="stage-top">
+  <div class="chip" id="hud"><span>{{d.t}}</span><span class="key" data-if="d.has_key">{{'0'|key}}</span></div>
+</div>
+</body></rml>

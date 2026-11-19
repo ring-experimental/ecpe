@@ -1,0 +1,107 @@
+<rml><head><link type="text/rcss" href="base.rcss"/><link type="text/rcss" href="title.rcss"/><link type="text/rcss" href="help.rcss"/>
+<!-- 타이틀 메인 메뉴(장면 4, 레벨 0~12). restored/ui_title.c가 채운다.
+     틀은 고정이다(다른 게임 메뉴 참고: 왼쪽 분류 레일 + 오른쪽 같은 크기 패널 + 오른쪽 아래 고정 키 안내). 단계가 바뀌어도 패널 안만 바뀐다.
+     rail: 메인 5항목(sel 고르는 중, on 지금 분류). path: 머리 띠 위치(i >= 0이면 눌러서 그 단계로).
+     sub: 하위 목록(sub_mode 1 미리보기, 2 고르는 중, 3 쪽이 열림). dkind: 내용 칸(desc, quit, opt, ost, text, rank, help, contact).
+     고르는 중인 목록은 nav="menu"(누르면 바로 선택), 그 밖은 pick="tmenu"(idx = 레벨*16 + 칸: 래퍼가 원본 키로 그 단계까지 간다). -->
+<style>
+.gone { display: none; }
+</style></head>
+<body data-model="title_menu">
+<div class="tarea pop" data-class-narrow="d.narrow" data-class-cover="d.cover" data-style-top="d.top + 'dp'">
+  <!-- 레일 -->
+  <div class="rail panel" data-if="d.rail_show" data-class-idle="!d.rail_act" data-style-width="d.rail_w + 'dp'">
+    <div data-for="it : d.rail" class="menu-item" data-attr-nav="d.rail_act &amp;&amp; !d.nofocus ? 'menu' : ''" pick="tmenu" data-attr-idx="it_index" data-class-sel="it.sel" data-class-on="it.on">{{it.t}}</div>
+  </div>
+
+  <!-- 패널 -->
+  <div class="tpanel panel" data-if="d.panel_show" data-style-width="d.panel_w + 'dp'">
+    <div class="title ptitle">
+      <div class="pname"><span data-for="c : d.path" data-class-gone="!c.use" class="crumb" data-class-link="c.i >= 0" pick="tmenu" data-attr-idx="c.i"><span data-if="c.sep" class="csep">›</span>{{c.t}}</span></div>
+      <div class="psub" data-if="d.dkind == 'help'"><span class="arr" data-class-off="!d.hprev" pick="help" data-attr-idx="d.hprev ? d.hprev_i : -1">◀ </span>{{d.hsection}}<span class="arr" data-class-off="!d.hnext" pick="help" data-attr-idx="d.hnext ? d.hnext_i : -1"> ▶</span></div>
+      <div class="psub" data-if="d.psub != ''"><span class="arr" data-class-off="!d.left" data-attr-key="d.left ? 'left' : ''" data-if="d.left || d.right">◀ </span>{{d.psub}}<span class="arr" data-class-off="!d.right" data-attr-key="d.right ? 'right' : ''" data-if="d.left || d.right"> ▶</span></div>
+    </div>
+    <div class="pbody">
+      <!-- 하위 목록 -->
+      <!-- 고르는 중(sub_mode 2)이면 sel, 쪽이 열렸으면(3) 그 칸이 idle(포커스가 오른쪽에 있는 고른 줄). nav는 고르는 중에만. -->
+      <vlist class="sub" if="d.sub_show" box-class='data-class-idle="d.sub_mode != 2" data-class-preview="d.sub_mode == 1" data-style-width="d.sub_w + &#39;dp&#39;"' for="it : d.sub" pick="tmenu" idx="it.i" off="!it.use" sel="it.sel" idle="it.on" label="it.t"
+             row-class='data-attr-nav="d.sub_mode == 2 ? &#39;menu&#39; : &#39;&#39;"'/>
+
+      <div class="detail">
+        <!-- 설명 -->
+        <div class="desc" data-if="d.dkind == 'desc'">
+          <div class="dname">{{d.dname}}</div>
+          <div class="dtext">{{d.desc}}</div>
+        </div>
+
+        <!-- 게임종료 확인 -->
+        <div class="desc quit" data-if="d.dkind == 'quit'">
+          <div class="dname">게임을 끝낼까요?</div>
+          <div class="qbtns"><span class="qbtn yes" key="ok"><span class="key">{{'ok' | key}}</span><span>끝내기</span></span><span class="qbtn" key="clear"><span class="key">{{'clear' | key}}</span><span>취소</span></span></div>
+        </div>
+
+        <!-- 에픽 OST: 곡 목록 + 곡 정보 -->
+        <div class="ost" data-if="d.dkind == 'ost'" data-class-preview="d.ost_mode == 1">
+          <!-- 듣는 중(ost_mode 3)인 곡은 idle 줄 + 앞 칸 ♪ -->
+          <vlist class="olist" box-class='data-class-idle="d.ost_mode != 2"' for="s : d.ost" pick="tmenu" idx="s.i" dis="s.dis" sel="s.sel" idle="s.on" lead="s.on ? '♪' : ''" label="s.t"
+                 row-class='data-attr-nav="d.ost_mode == 2 ? &#39;menu&#39; : &#39;&#39;"'/>
+          <div class="oinfo">
+            <div class="dname" data-if="d.oname != ''"><span data-if="d.oplay">♪ </span>{{d.oname}}</div>
+            <div data-for="l : d.olines" class="ln" data-class-gone="!l.use">{{l.t}}</div>
+            <div class="dtext" data-if="d.onote != ''">{{d.onote}}</div>
+          </div>
+        </div>
+
+        <!-- 글 쪽(한마디, 정보이용료, 랭킹) -->
+        <div class="tbody" data-if="d.dkind == 'text' || d.dkind == 'rank'">
+          <div class="grow">
+            <div data-for="l : d.lines" class="ln">{{l.t}}</div>
+            <div class="foot" data-if="d.dkind == 'rank' && d.foot != ''">
+              <div class="keys keyrow"><span class="kb" data-for="k : d.fkeys" data-attr-key="k.key" data-class-gone="k.t == ''"><span class="key" data-if="k.k != ''">{{k.k | key}}</span>{{k.t}} </span></div>
+            </div>
+          </div>
+          <div class="scrl small" data-if="d.up || d.down"><span class="arr" data-class-off="!d.up" data-attr-key="d.up ? 'up' : ''">▲</span><div class="grow"></div><span class="arr" data-class-off="!d.down" data-attr-key="d.down ? 'down' : ''">▼</span></div>
+        </div>
+
+        <!-- 도움말·게임속으로: 옵션의 도움말과 같은 것(restored/help.c, ui/help.rcss). 좁으면 색인을 감추고 머리 띠의 ◀▶로 넘긴다. -->
+        <div class="hbody" data-if="d.dkind == 'help'">
+          <vlist class="hidx" if="d.hwide" for="h : d.hsections" pick="help" idx="h.i" idle="h.cur" label="h.t" size="s"/>
+          <div class="hpage" scroll="help"><div class="p" data-for="q : d.hparas" data-class-h="q.ty == 1" data-class-b="q.ty == 2" data-class-s="q.ty == 3">{{q.t}}</div></div>
+        </div>
+
+        <!-- 환경설정(레벨 3). 메인에서 커서가 환경설정에 있으면 저장된 값을 흐리게 미리 보인다. -->
+        <div class="opt" data-if="d.dkind == 'opt'" data-class-preview="!d.opt_act">
+          <!-- 원작 줄(값 칩, 좌우로 바꾼다) 아래에 원작에 없는 줄(restored/cfgx.c): 값 줄(화면, 일러스트)과 여는 줄(o.act: 조작 설정, 기타 설정,
+               세이브 데이터 = 결정 키나 「열기」 누르기). 전에는 제목 옆 버튼이라 게임패드로 닿을 수 없었다. -->
+          <vlist class="orows" scroll="topts" for="o : d.opts" idx="it_index" sel="o.sel" label="o.name" size="l"
+                 row-class='data-attr-nav="d.opt_act ? &#39;opts&#39; : &#39;&#39;"'>
+            <span class="arr" data-attr-key="o.sel &amp;&amp; o.act == '' ? 'left' : ''" data-class-off="!o.sel" data-class-gone="o.act != ''">◀</span>
+            <div class="chips"><span data-for="h : o.ch" class="chip" data-class-on="h.on">{{h.t}}</span>
+              <span class="chip obtn" data-class-gone="o.act == ''" data-attr-action="d.opt_act ? o.act : ''"><span>열기</span><span class="okey" data-if="o.sel">{{'ok' | key}}</span></span></div>
+            <span class="arr" data-attr-key="o.sel &amp;&amp; o.act == '' ? 'right' : ''" data-class-off="!o.sel" data-class-gone="o.act != ''">▶</span>
+          </vlist>
+          <div class="onote" data-if="d.opt_act">바꾼 값은 나갈 때 저장됩니다.</div>
+        </div>
+
+        <!-- 게임문의: 원본 그림 -->
+        <div class="contact" data-if="d.dkind == 'contact'">
+          <div class="card"><img data-attr-src="d.logo" data-if="d.logo != ''"/></div>
+          <div class="cinfo">
+            <img data-attr-src="d.url" data-if="d.url != ''"/>
+            <img data-attr-src="d.tel" data-if="d.tel != ''"/>
+          </div>
+          <div class="mailbar"><img data-attr-src="d.mail" data-if="d.mail != ''"/></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+<!-- 고정 키 안내: 늘 같은 두 칸, 쓸 수 없으면 흐리게 -->
+<div class="tkeys" data-class-narrow="d.narrow">
+  <span class="thint" data-if="d.hint != ''">{{d.hint}}</span>
+  <div class="keys keyrow">
+    <span class="kb okk" data-class-off="!d.ok_on" data-attr-key="d.ok_on ? 'ok' : ''"><span class="key">{{'ok' | key}}</span>결정</span>
+    <span class="kb" data-class-off="!d.clr_on" data-attr-key="d.clr_on ? 'clear' : ''"><span class="key">{{'clear' | key}}</span>이전</span>
+  </div>
+</div>
+</body></rml>
